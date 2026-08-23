@@ -47,7 +47,7 @@ class ReconciliationEngine:
         
         # Calculate totals
         total_claimed_invoiced = sum(
-            c.claimed_amount for c in claims if c.claim_type.value in ["INVOICE_ISSUED", "PAYMENT_SENT"]
+            (c.claimed_amount or 0.0) for c in claims if c.claim_type.value in ["INVOICE_ISSUED", "PAYMENT_SENT"]
         )
         total_verified_credits = sum(
             t.amount for t in transactions if t.direction.value == "CREDIT"

@@ -96,6 +96,37 @@ batch_result = service.ingest_batch("data/samples/day2/")
 
 ---
 
+## 🔍 Multimodal Claims Extraction (Day 3 Milestone)
+
+VERITY transforms unstructured, semi-structured, and multimodal evidence into structured `Claim` objects using a **deterministic-first** architecture with AI fallback:
+
+1. **Bank CSV Extractor (`BankCSVExtractor`)**:
+   - Zero-cost deterministic extraction of financial claims from bank statement rows.
+2. **Text & Multilingual Extractor (`TextClaimExtractor`)**:
+   - Extracts rupee amounts (`₹`, `Rs`, `INR`, `20k`, `1.5L`, `15 hazar`, Devanagari digits `२० हजार`).
+   - Multilingual support: English, Hinglish, Hindi, Marathi, Tamil, Telugu, Kannada, Bengali.
+   - **Anti-Hallucination**: Statements without amounts (e.g. *"I sent the money"*) yield `claimed_amount = None` without fabricating numbers.
+3. **PDF Document Extractor (`PDFDocumentExtractor`)**:
+   - Extracts invoice numbers, total due amounts, dates, and billed-to parties from digital PDFs.
+   - Distinguishes scanned PDFs and flags `REQUIRES_VISION_OR_OCR` without hallucinating fields.
+4. **AI/VLM Extraction Provider (`AIExtractionProvider`)**:
+   - Provider-independent configuration (OpenAI-compatible, Gemini, Custom, Mock).
+   - Schema-enforced structured JSON output with strict hallucination guards.
+
+**Unified Extraction Service API**:
+```python
+from backend.extraction import ExtractionService
+
+ext_service = ExtractionService()
+
+# Extract claims from any Evidence artifact
+result = ext_service.extract_from_evidence(evidence)
+for claim in result.claims:
+    print(f"Claim: {claim.claim_type.value} | Amount: {claim.claimed_amount} | Ref: {claim.reference_id_hint}")
+```
+
+---
+
 ## 📊 Ground-Truth Benchmark (96 Realistic Cases)
 
 VERITY includes a 100% deterministic ground-truth benchmark containing **96 realistic Indian financial cases** across 12 categories:

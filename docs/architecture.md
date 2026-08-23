@@ -74,7 +74,7 @@ graph TD
 |---|---|
 | `backend.domain` | Strongly typed canonical models (`Evidence`, `Claim`, `Entity`, `Transaction`, `Discrepancy`, `ReconciliationRecord`, `ProvenanceNode`). |
 | `backend.ingestion` | Ingests heterogeneous files (CSV, TXT, PDF, PNG/JPG/WEBP) via modular adapters (`BankCSVAdapter`, `TextMessageAdapter`, `PDFDocumentAdapter`, `ImagePaymentScreenshotAdapter`) and `IngestionService` into normalized `Evidence` objects with SHA-256 content hashes. |
-| `backend.extraction` | Transforms raw `Evidence` into semantic `Claim` objects and verified `Transaction` ledger records. |
+| `backend.extraction` | Transforms raw `Evidence` into structured `Claim` objects via deterministic parsers (`BankCSVExtractor`, `TextClaimExtractor`, `PDFDocumentExtractor`) and provider-independent AI extractors (`AIExtractionProvider`, `ExtractionService`) with strict anti-hallucination safeguards. |
 | `backend.entity_resolution` | Matches names, trading styles, GSTIN, PAN, UPI VPAs, and phone numbers to canonical entities. |
 | `backend.transaction_matching` | Pairs claims and transactions across 1:1, 1:N (bulk settlements), and N:1 (milestone installments). |
 | `backend.deduplication` | Detects redundant evidence across modalities (e.g. UPI screenshot + Bank statement line) to prevent double-counting. |

@@ -38,7 +38,7 @@ class Claim(BaseModel):
     id: str = Field(..., description="Unique claim identifier, e.g. CLM-2026-001")
     evidence_id: str = Field(..., description="ID of the Evidence from which this claim was extracted")
     claim_type: ClaimType = Field(..., description="Type of financial assertion")
-    claimed_amount: float = Field(..., description="The numeric amount asserted (must be >= 0)")
+    claimed_amount: Optional[float] = Field(default=None, description="The numeric amount asserted (must be >= 0 if present)")
     currency: str = Field(default="INR", description="Three-letter ISO currency code, default INR")
     claimed_date: Optional[str] = Field(
         default=None,
@@ -81,7 +81,9 @@ class Claim(BaseModel):
 
     @field_validator("claimed_amount")
     @classmethod
-    def validate_amount_non_negative(cls, v: float) -> float:
-        if v < 0:
-            raise ValueError("Claimed amount cannot be negative")
-        return round(v, 2)
+    def validate_amount_non_negative(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None:
+            if v < 0:
+                raise ValueError("Claimed amount cannot be negative")
+            return round(v, 2)
+        return None

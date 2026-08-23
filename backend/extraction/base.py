@@ -1,31 +1,32 @@
-"""Extraction subsystem interface for parsing Evidence into structured Claims and Transactions."""
+"""Base interfaces and protocols for VERITY evidence extraction providers."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import Any, Dict, List, Optional
 from backend.domain.evidence import Evidence
-from backend.domain.claim import Claim
-from backend.domain.transaction import Transaction
-
-
-class ExtractionResult:
-    """Container for the structured artifacts extracted from an Evidence item."""
-    def __init__(
-        self,
-        evidence_id: str,
-        claims: List[Claim],
-        transactions: List[Transaction],
-    ) -> None:
-        self.evidence_id = evidence_id
-        self.claims = claims
-        self.transactions = transactions
+from backend.extraction.result import ExtractionResult
 
 
 class BaseExtractor(ABC):
-    """Abstract interface for evidence extraction pipelines (Rule-based, Regex, or AI)."""
+    """Abstract interface for all evidence extraction engines (Deterministic & AI)."""
+
+    @property
+    @abstractmethod
+    def provider_name(self) -> str:
+        """Identifier of this extraction provider."""
+        pass
 
     @abstractmethod
-    def extract(self, evidence: Evidence) -> ExtractionResult:
-        """Extract structured claims or ledger transactions from raw evidence."""
+    def can_extract(self, evidence: Evidence) -> bool:
+        """Check whether this extractor is suited to handle the given evidence item."""
+        pass
+
+    @abstractmethod
+    def extract(
+        self,
+        evidence: Evidence,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> ExtractionResult:
+        """Extract structured financial claims from the given raw evidence."""
         pass
