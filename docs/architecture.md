@@ -81,6 +81,10 @@ graph TD
 | `backend.contradiction_detection` | Identifies and structures deterministic disagreements (`Discrepancy`) across amounts, explicit references (UTR/RRN), counterparty identities, dates, directions, and claims without prematurely deciding which source is correct. |
 | `backend.provenance` | Maintains the tamper-evident DAG linking every reconciliation result back to root evidence artifacts. |
 | `backend.reconciliation` | Synthesizes verified financial reconciliation conclusions (`CONFIRMED`, `PARTIALLY_SETTLED`, `CONTRADICTED`, `UNVERIFIABLE`, `AMBIGUOUS`, `UNMATCHED`) across Days 1–7 outputs with deterministic rules, zero double-counting, and monetary invariant enforcement. |
+| `backend.reporting` | Generates explainable, deterministic Financial Truth Reports (`FinancialTruthReport`) with human-readable justifications, factor breakdowns, recommended review actions, and complete provenance traceability. |
+| `backend.case_processing` | End-to-end Finance Controller pipeline orchestrator connecting all 8 subsystems (`Ingestion -> Extraction -> Entity Resolution -> Transaction Matching -> Deduplication -> Contradiction Detection -> Reconciliation -> Reporting`) with unified execution context and telemetry. |
+| `backend.api` | Production-ready FastAPI REST layer exposing endpoints for case submission, file uploads, text parsing, demo executions, and DAG provenance retrieval. |
+| `frontend` | Interactive Financial Truth Controller dashboard featuring glassmorphic dark UI, 8-stage telemetry, deep investigation tabs, and 10 one-click benchmark scenarios. |
 
 ---
 

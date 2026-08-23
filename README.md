@@ -282,6 +282,104 @@ print(f"Total Outstanding: INR {batch_result.total_outstanding_amount:,.2f}")
 
 ---
 
+## 📑 Explainable Financial Truth & Reporting (Day 9 Milestone)
+
+VERITY generates structured, deterministic Financial Truth Reports (`FinancialTruthReport`) that explain *WHY* financial conclusions were reached using only verified facts:
+
+- **Core Invariant**: $\mathbf{Evidence \neq Claim \neq Transaction \neq Reconciliation \neq Explanation}$.
+- **Zero Hallucination Guarantee**: Every summary, number, reference, and justification is derived deterministically from canonical domain records. Missing values are presented as `"Unknown"` or `"Not provided"`.
+- **Explainability & Actionable Insights**:
+  - Transparent executive summaries and detailed accounting paragraphs.
+  - Confidence breakdown with positive (`+`) and negative (`-`) signal factors.
+  - Specific recommended actions tailored for finance controllers (e.g. tracking partial balances, auditing conflicting evidence).
+  - Explicit provenance DAG references across all domain nodes.
+
+**Reporting Service API**:
+```python
+from backend.reporting import ReportingService
+
+service = ReportingService()
+
+report = service.build_report(
+    reconciliation_result=recon_result,
+    claims=claims,
+    transactions=transactions,
+    evidence=evidence,
+    entities=entities,
+    match_relationships=match_relationships,
+    deduplication_groups=deduplication_groups,
+    discrepancies=discrepancies,
+    case_id="INV-2026-088",
+)
+
+# Output text and JSON
+print(service.render_text_report(report))
+```
+
+---
+
+## ⚡ End-to-End Finance Controller Pipeline (Day 10 Milestone)
+
+VERITY provides a unified, deterministic entry point (`CaseProcessingService`) coordinating all 8 sequential stages of financial truth reconstruction:
+
+$$\text{Evidence} \to \text{Ingestion} \to \text{Extraction} \to \text{Entity Resolution} \to \text{Matching} \to \text{Deduplication} \to \text{Contradictions} \to \text{Reconciliation} \to \text{Reporting}$$
+
+- **Core Invariant**: $\mathbf{Evidence \neq Claim \neq Transaction \neq Match \neq Deduplication \neq Discrepancy \neq Reconciliation \neq Explanation}$.
+- **Stage Execution Telemetry**: Tracks granular stage performance, input/output item counts, and latency in milliseconds.
+- **Strict Uncertainty Preservation**: Ambiguities, discrepancies, and unverified claims are never falsely confirmed.
+- **Audit-Ready Results**: Produces structured `CaseProcessingResult` with human-readable text and JSON report outputs.
+
+**Pipeline Orchestrator API**:
+```python
+from backend.case_processing import CaseInput, CaseProcessingService
+from backend.domain.transaction import Transaction, TransactionDirection
+
+service = CaseProcessingService()
+
+case_input = CaseInput(
+    case_id="CASE-2026-088",
+    raw_file_paths=["data/invoices/inv_088.pdf"],
+    transactions=[
+        Transaction(id="TXN-088", amount=35000.0, direction=TransactionDirection.CREDIT, bank_reference="408219381920")
+    ],
+)
+
+result = service.process_case(case_input)
+
+print(f"Final Status   : {result.status}")
+print(f"Confidence     : {result.confidence_score * 100:.0f}%")
+print(f"Total Latency  : {result.total_execution_time_ms:.2f} ms")
+print(f"Recorded Stages: {len(result.stage_records)}")
+print(result.to_text_report())
+```
+
+---
+
+## 🌐 Finance Controller API & Interactive UI (Day 11 Milestone)
+
+VERITY includes a production-grade **FastAPI REST API** and an interactive, glassmorphic **Finance Controller Dashboard**:
+
+- **Unified REST API (`backend.api`)**:
+  - `GET /health` & `GET /api/v1/info`
+  - `POST /api/v1/cases` (Structured CaseInput payload)
+  - `POST /api/v1/cases/text` (Raw WhatsApp / SMS exports)
+  - `POST /api/v1/cases/files` (Multipart uploads for PDF, CSV, Images, Text)
+  - `GET /api/v1/demo-cases` & `POST /api/v1/demo-cases/{case_id}/run`
+  - `GET /api/v1/cases/{case_id}/report` & `GET /api/v1/cases/{case_id}/provenance`
+- **Interactive UI (`frontend/`)**:
+  - 10 One-Click Benchmark demonstration cases.
+  - Live 8-stage pipeline telemetry with microsecond precision.
+  - Financial Truth Hero Card with confidence meters and human-review flags.
+  - Deep investigation tabs for Evidence, Matching Topology, Contradictions, Confidence Signals, Recommended Actions, Provenance DAG, and Raw Reports.
+
+**Running the Web Application**:
+```bash
+# Launch FastAPI backend with static frontend mounted at http://localhost:8000
+python -m uvicorn backend.api.app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+---
+
 ## 📊 Ground-Truth Benchmark (96 Realistic Cases)
 
 VERITY includes a 100% deterministic ground-truth benchmark containing **96 realistic Indian financial cases** across 12 categories:

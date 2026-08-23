@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VERITY — Financial Truth, Reconstructed | AI Finance Controller</title>
+  <meta name="description" content="AI-powered multimodal financial reconciliation and truth reconstruction engine for Indian SMBs and freelancers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo-group">
+        <div class="logo-badge">VERITY</div>
+        <div class="logo-text">
+          <h1>Financial Truth, Reconstructed</h1>
+          <p>Autonomous Multimodal Financial Reconciliation Engine</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span class="tag-badge">Razorpay AI Buildathon 2026</span>
+        <div class="status-dot-group">
+          <span class="status-dot" id="system-status-dot"></span>
+          <span id="system-status-text">Engine Online (Day 11)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Demo Benchmark Quick Actions -->
+    <section class="demo-bar">
+      <div class="demo-bar-header">
+        <span class="demo-bar-title">⚡ Quick Benchmark Scenarios</span>
+        <span style="font-size: 0.78rem; color: var(--text-faint);">10 Deterministic Test Cases</span>
+      </div>
+      <div class="demo-pills" id="demo-pills-container">
+        <!-- Dynamically populated from /api/v1/demo-cases -->
+      </div>
+    </section>
+
+    <!-- Case Input Section -->
+    <section class="input-section">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="tab-upload">Upload Evidence</button>
+        <button class="tab-btn" data-tab="tab-text">Raw Text / WhatsApp</button>
+        <button class="tab-btn" data-tab="tab-json">JSON Case</button>
+      </div>
+
+      <!-- Upload Tab -->
+      <div class="tab-pane active" id="tab-upload">
+        <div class="dropzone" id="file-dropzone">
+          <p style="font-weight: 600; font-size: 1.05rem; margin-bottom: 0.25rem;">Drag & drop evidence files or click to browse</p>
+          <p style="color: var(--text-muted); font-size: 0.82rem;">Supports Bank CSV, Invoices (PDF), Payment Screenshots (PNG/JPG), and Text exports</p>
+          <input type="file" id="file-input" multiple style="display: none;" accept=".csv,.pdf,.png,.jpg,.jpeg,.txt">
+          <div id="file-list-preview" style="margin-top: 1rem; font-size: 0.85rem; color: var(--accent-secondary);"></div>
+        </div>
+      </div>
+
+      <!-- Text / WhatsApp Tab -->
+      <div class="tab-pane" id="tab-text">
+        <textarea class="textarea-field" id="text-evidence-input" placeholder="Paste unformatted financial text or WhatsApp chat export, e.g.:
+[23/08/26, 2:30 PM] Rahul Kumar: Bhai ₹35,000 bhej diye via UPI ref 408219381920"></textarea>
+      </div>
+
+      <!-- JSON Case Tab -->
+      <div class="tab-pane" id="tab-json">
+        <textarea class="textarea-field" id="json-case-input" placeholder='{
+  "case_id": "CASE-CUSTOM-001",
+  "transactions": [{"amount": 35000, "direction": "CREDIT", "bank_reference": "408219381920"}]
+}'></textarea>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn-primary" id="btn-process">
+          <span id="btn-spinner" style="display: none;">⏳</span>
+          <span id="btn-text">Reconstruct Financial Truth</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Pipeline Stage Telemetry Timeline -->
+    <section class="timeline-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 0.95rem; font-weight: 700;">8-Stage Finance Controller Pipeline</h3>
+        <span id="total-latency-tag" style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--accent-secondary);">Total Latency: -- ms</span>
+      </div>
+      <div class="stage-grid" id="stage-grid">
+        <div class="stage-box" id="stage-INGESTION"><div class="stage-num">01</div><div class="stage-name">Ingestion</div><div class="stage-metrics">--</div></div>
+        <div class="stage-box" id="stage-EXTRACTION"><div class="stage-num">02</div><div class="stage-name">Extraction</div><div class="stage-metrics">--</div></div>
+        <div class="stage-box" id="stage-ENTITY_RESOLUTION"><div class="stage-num">03</div><div class="stage-name">Entities</div><div class="stage-metrics">--</div></div>
+        <div class="stage-box" id="stage-TRANSACTION_MATCHING"><div class="stage-num">04</div><div class="stage-name">Matching</div><div class="stage-metrics">--</div></div>
+        <div class="stage-box" id="stage-DEDUPLICATION"><div class="stage-num">05</div><div class="stage-name">Dedup</div><div class="stage-metrics">--</div></div>
+        <div class="stage-box" id="stage-CONTRADICTION_DETECTION"><div class="stage-num">06</div><div class="stage-name">Conflicts</div><div class="stage-metrics">--</div></div>
+        <div class="stage-box" id="stage-RECONCILIATION"><div class="stage-num">07</div><div class="stage-name">Reconciliation</div><div class="stage-metrics">--</div></div>
+        <div class="stage-box" id="stage-REPORTING"><div class="stage-num">08</div><div class="stage-name">Reporting</div><div class="stage-metrics">--</div></div>
+      </div>
+    </section>
+
+    <!-- Primary Financial Truth Hero Card -->
+    <section class="truth-hero-card" id="truth-hero-card">
+      <div class="truth-status-badge-container">
+        <div class="status-badge-lg badge-CONFIRMED" id="hero-status-badge">READY</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+          <span>Confidence</span>
+          <span id="hero-confidence-val" style="font-weight: 700; color: var(--text-main);">100%</span>
+        </div>
+        <div class="confidence-bar-wrapper">
+          <div class="confidence-bar-bg">
+            <div class="confidence-bar-fill" id="hero-confidence-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+        <div id="hero-review-badge" style="font-size: 0.75rem; text-align: center; margin-top: 0.25rem; font-weight: 600; color: var(--status-confirmed);">
+          ✓ NO REVIEW REQUIRED
+        </div>
+      </div>
+
+      <div class="truth-hero-details">
+        <h2 id="hero-title">Select or submit a case to begin reconciliation</h2>
+        <p id="hero-summary">VERITY analyzes messy multimodal evidence across bank statements, WhatsApp chats, invoices, and payment screenshots to reconstruct verified financial truth with mathematical certainty and zero hallucination.</p>
+      </div>
+    </section>
+
+    <!-- Financial Accounting Summary Grid -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Expected Claim</div>
+        <div class="metric-val" id="metric-claimed">₹0.00</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Verified Matched</div>
+        <div class="metric-val" id="metric-matched" style="color: var(--status-confirmed);">₹0.00</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Outstanding Balance</div>
+        <div class="metric-val" id="metric-outstanding" style="color: var(--status-partial);">₹0.00</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Discrepancies / Conflicts</div>
+        <div class="metric-val" id="metric-discrepancies" style="color: var(--status-contradicted);">0</div>
+      </div>
+    </section>
+
+    <!-- Deep Investigation Panels (Tabs) -->
+    <section class="details-section">
+      <div class="panel-tabs">
+        <button class="panel-tab-btn active" data-panel="panel-evidence">Evidence (0)</button>
+        <button class="panel-tab-btn" data-panel="panel-matching">Matching Topology</button>
+        <button class="panel-tab-btn" data-panel="panel-contradictions">Contradictions (0)</button>
+        <button class="panel-tab-btn" data-panel="panel-factors">Confidence Signals</button>
+        <button class="panel-tab-btn" data-panel="panel-actions">Recommended Actions</button>
+        <button class="panel-tab-btn" data-panel="panel-provenance">Provenance Lineage</button>
+        <button class="panel-tab-btn" data-panel="panel-report">Text Report & JSON</button>
+      </div>
+
+      <!-- Panel: Evidence -->
+      <div class="detail-panel active" id="panel-evidence">
+        <div class="evidence-list" id="evidence-list-container">
+          <p style="color: var(--text-faint); font-size: 0.88rem;">No evidence items loaded.</p>
+        </div>
+      </div>
+
+      <!-- Panel: Matching Topology -->
+      <div class="detail-panel" id="panel-matching">
+        <div id="matching-details-container">
+          <p style="color: var(--text-faint); font-size: 0.88rem;">No matching relationships evaluated.</p>
+        </div>
+      </div>
+
+      <!-- Panel: Contradictions -->
+      <div class="detail-panel" id="panel-contradictions">
+        <div class="disc-list" id="contradictions-list-container">
+          <p style="color: var(--text-faint); font-size: 0.88rem;">No contradictions detected.</p>
+        </div>
+      </div>
+
+      <!-- Panel: Confidence Factors -->
+      <div class="detail-panel" id="panel-factors">
+        <div class="factor-list" id="factors-list-container">
+          <p style="color: var(--text-faint); font-size: 0.88rem;">No confidence factors calculated.</p>
+        </div>
+      </div>
+
+      <!-- Panel: Recommended Actions -->
+      <div class="detail-panel" id="panel-actions">
+        <div class="action-list" id="actions-list-container">
+          <p style="color: var(--text-faint); font-size: 0.88rem;">No recommended actions.</p>
+        </div>
+      </div>
+
+      <!-- Panel: Provenance -->
+      <div class="detail-panel" id="panel-provenance">
+        <div id="provenance-details-container">
+          <p style="color: var(--text-faint); font-size: 0.88rem;">Provenance trace will appear once a case is reconciled.</p>
+        </div>
+      </div>
+
+      <!-- Panel: Text & JSON Report -->
+      <div class="detail-panel" id="panel-report">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+          <button class="tab-btn active" id="btn-show-text-report">Formatted Text Report</button>
+          <button class="tab-btn" id="btn-show-json-report">Structured JSON</button>
+        </div>
+        <div class="terminal-box" id="report-terminal">Select a case to inspect report outputs.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>VERITY — Financial Truth, Reconstructed &copy; 2026. Razorpay AI Buildathon 2026 | Track: AI Finance Controller.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

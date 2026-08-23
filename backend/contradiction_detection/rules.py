@@ -34,8 +34,12 @@ class ContradictionRuleEngine:
             # Missing amount is NOT a contradiction!
             return None
 
-        # If MatchRelationship identifies this as a valid PARTIAL payment, do NOT flag AMOUNT_MISMATCH!
-        if match_relationship and match_relationship.relationship_type == MatchRelationshipType.PARTIAL:
+        # If MatchRelationship identifies this as a valid PARTIAL, MANY_TO_ONE, or ONE_TO_MANY, do NOT flag AMOUNT_MISMATCH!
+        if match_relationship and match_relationship.relationship_type in (
+            MatchRelationshipType.PARTIAL,
+            MatchRelationshipType.MANY_TO_ONE,
+            MatchRelationshipType.ONE_TO_MANY,
+        ):
             return None
 
         c_amt = float(claim.claimed_amount)
