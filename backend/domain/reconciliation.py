@@ -19,10 +19,12 @@ class ReconciliationStatus(str, Enum):
     """The synthesized financial conclusion status."""
     CONFIRMED = "CONFIRMED"         # 100% corroborated by ledger transactions and evidence
     PARTIAL = "PARTIAL"             # Valid transaction received, but covers only part of the invoice/claim
+    PARTIALLY_SETTLED = "PARTIALLY_SETTLED" # Alias for partial settlement
     DUPLICATE = "DUPLICATE"         # Redundant proof detected across multiple evidence modalities
     CONTRADICTED = "CONTRADICTED"   # Conflicting assertions (e.g. claimed paid vs failed/lesser amount)
     UNVERIFIABLE = "UNVERIFIABLE"   # Assertion lacks ledger proof, missing counterparty, or unsupported cash claim
     AMBIGUOUS = "AMBIGUOUS"         # Multiple valid candidate interpretations requiring user review
+    UNMATCHED = "UNMATCHED"         # Unmatched standalone transaction or obligation
 
 
 class MatchType(str, Enum):

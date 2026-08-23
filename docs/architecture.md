@@ -77,10 +77,10 @@ graph TD
 | `backend.extraction` | Transforms raw `Evidence` into structured `Claim` objects via deterministic parsers (`BankCSVExtractor`, `TextClaimExtractor`, `PDFDocumentExtractor`) and provider-independent AI extractors (`AIExtractionProvider`, `ExtractionService`) with strict anti-hallucination safeguards. |
 | `backend.entity_resolution` | Resolves extracted `Claim` counterparty hints against known `Entity` records via multi-signal scoring (`GSTIN`, `PAN`, `UPI VPA`, phone, aliases, initials) with strict ambiguity preservation and zero false merges. |
 | `backend.transaction_matching` | Establishes candidate `MatchRelationship` records across 1:1, 1:N (bulk settlements), N:1 (milestone installments), Partial, Ambiguous, and Conflicting topologies with bounded combination search and zero false matches. |
-| `backend.deduplication` | Detects redundant evidence across modalities (e.g. UPI screenshot + Bank statement line) to prevent double-counting. |
-| `backend.contradiction_detection` | Identifies conflicts between claimed amounts and ledger facts (e.g. client claims 50k sent, bank records 35k or bounce). |
+| `backend.deduplication` | Non-destructively clusters multimodal evidence (Bank statements, WhatsApp, Screenshots, Invoices) into canonical `DeduplicationGroup` objects, detecting cryptographic content duplicates (`DUPLICATE_EVIDENCE_CONTENT`) and event-level duplicates (`SAME_EVENT`) while preserving distinct transactions (`DISTINCT_EVENT`). |
+| `backend.contradiction_detection` | Identifies and structures deterministic disagreements (`Discrepancy`) across amounts, explicit references (UTR/RRN), counterparty identities, dates, directions, and claims without prematurely deciding which source is correct. |
 | `backend.provenance` | Maintains the tamper-evident DAG linking every reconciliation result back to root evidence artifacts. |
-| `backend.reconciliation` | Orchestrates the pipeline and synthesizes the final verified financial conclusions. |
+| `backend.reconciliation` | Synthesizes verified financial reconciliation conclusions (`CONFIRMED`, `PARTIALLY_SETTLED`, `CONTRADICTED`, `UNVERIFIABLE`, `AMBIGUOUS`, `UNMATCHED`) across Days 1–7 outputs with deterministic rules, zero double-counting, and monetary invariant enforcement. |
 
 ---
 

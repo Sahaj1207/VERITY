@@ -176,6 +176,112 @@ for rel in result.relationships:
 
 ---
 
+## 👥 Cross-Modal Evidence Deduplication (Day 6 Milestone)
+
+VERITY non-destructively groups multimodal evidence artifacts (Bank CSV rows, WhatsApp chats, GPay screenshots, Zoho Invoices) into canonical **Event Groups** without erasing source evidence or conflating distinct transactions:
+
+- **Non-Destructive Grouping**: Original `Evidence`, `Claim`, and `Transaction` records remain independently traceable through the provenance DAG.
+- **Duplicate Evidence $\neq$ Duplicate Transaction**: Multiple pieces of evidence describing a single payment are merged into 1 financial event. Distinct milestone payments (e.g. ₹10k + ₹5k + ₹5k) remain 3 distinct event groups (`DISTINCT_EVENT`).
+- **Cryptographic vs Semantic Duplication**:
+  - `DUPLICATE_EVIDENCE_CONTENT`: Exact SHA-256 hash match (e.g. same screenshot file uploaded twice).
+  - `SAME_EVENT`: Multi-modal evidence items describing the same financial payment.
+  - `POSSIBLE_DUPLICATE`: Preserves contradictory amounts/references for Day 7 Contradiction Detection.
+
+**Deduplication Service API**:
+```python
+from backend.deduplication import DeduplicationEngine, DeduplicationConfig
+
+engine = DeduplicationEngine(config=DeduplicationConfig(date_tolerance_days=3))
+
+# Group multimodal evidence into canonical event groups
+result = engine.deduplicate(
+    evidence_items=evidence_items,
+    claims=claims,
+    transactions=transactions,
+    match_relationships=match_relationships,
+)
+
+for group in result.groups:
+    print(f"Group: {group.group_id} | Status: {group.status.value} | Members: {group.member_evidence_ids}")
+```
+
+---
+
+## ⚡ Deterministic Contradiction Detection (Day 7 Milestone)
+
+VERITY identifies and structures financial disagreements across heterogeneous evidence, claims, transactions, entities, and event groups:
+
+- **Detect Disagreement $\neq$ Resolve Disagreement**: Identifies *"Where does the evidence disagree?"* while strictly leaving financial truth synthesis to Day 8 Reconciliation.
+- **Structured Discrepancy Taxonomy**:
+  - `AMOUNT_MISMATCH` (Claimed vs Bank amount differences not explained by partial payments).
+  - `REFERENCE_MISMATCH` (Conflicting explicit UTR / RRN numbers for same event).
+  - `ENTITY_MISMATCH` (Counterparty entity disagreement between claim and ledger).
+  - `DATE_MISMATCH` (Extreme settlement date drift $> 30$ days).
+  - `DIRECTION_MISMATCH` (Expected inflow credit vs debit outflow).
+  - `CONFLICTING_CLAIMS` (Multiple contradictory claim amounts in same event group).
+- **Zero False Contradiction Policy**:
+  - Valid partial payments (`PARTIAL`) are recognized and suppressed from false amount contradictions.
+  - GPay vs UPI rail compatibility is preserved without false conflicts.
+  - Multilingual equivalent claims are normalized without false contradictions.
+  - Missing values (`claimed_amount: None`) are recognized as absence of information, not contradictions.
+
+**Contradiction Detector API**:
+```python
+from backend.contradiction_detection import ContradictionDetector, ContradictionConfig
+
+detector = ContradictionDetector(config=ContradictionConfig(max_acceptable_date_drift_days=30))
+
+result = detector.detect(
+    claims=claims,
+    transactions=transactions,
+    deduplication_groups=deduplication_groups,
+    match_relationships=match_relationships,
+    claim_entity_map=entity_map,
+)
+
+for disc in result.discrepancies:
+    print(f"[{disc.severity.value}] {disc.discrepancy_type.value}: {disc.message}")
+```
+
+---
+
+## 🎯 Deterministic Financial Reconciliation (Day 8 Milestone)
+
+VERITY synthesizes explainable, mathematically verified financial conclusions by integrating the outputs of Days 1–7:
+
+- **Pipeline Lineage**:
+  $$\mathbf{Evidence \to Claims \to Entity\ Resolution \to Transaction\ Matching \to Deduplication \to Contradiction\ Detection \to Reconciliation}$$
+- **Reconciliation Statuses**:
+  - `CONFIRMED`: Corroborated by verified ledger transactions, compatible entity/date, with zero unresolved contradictions.
+  - `PARTIALLY_SETTLED`: Valid Day 5 partial settlement recognized with exact calculation of outstanding balance (`outstanding = expected - matched`).
+  - `CONTRADICTED`: Material Day 7 contradictions (`AMOUNT_MISMATCH`, `REFERENCE_MISMATCH`, `ENTITY_MISMATCH`, etc.) strictly prevent false confirmation.
+  - `UNVERIFIABLE`: Assertion lacks bank ledger proof or has unstated amounts.
+  - `AMBIGUOUS`: Competing reconciliation paths are preserved without arbitrary decisions.
+  - `UNMATCHED`: Standalone ledger transaction without matching obligation.
+- **Zero Double-Counting**: Deduplicated multimodal evidence (Invoice + Bank + WhatsApp + Screenshot) resolves to a single reconciliation event.
+
+**Reconciliation Service API**:
+```python
+from backend.reconciliation import ReconciliationService, ReconciliationConfig
+
+service = ReconciliationService(config=ReconciliationConfig(date_tolerance_days=7))
+
+batch_result = service.reconcile_all(
+    claims=claims,
+    transactions=transactions,
+    evidence_items=evidence_items,
+    deduplication_groups=deduplication_groups,
+    match_relationships=match_relationships,
+    discrepancies=discrepancies,
+    claim_entity_map=claim_entity_map,
+)
+
+print(f"Total Reconciled: INR {batch_result.total_reconciled_amount:,.2f}")
+print(f"Total Outstanding: INR {batch_result.total_outstanding_amount:,.2f}")
+```
+
+---
+
 ## 📊 Ground-Truth Benchmark (96 Realistic Cases)
 
 VERITY includes a 100% deterministic ground-truth benchmark containing **96 realistic Indian financial cases** across 12 categories:
