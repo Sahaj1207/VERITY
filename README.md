@@ -127,6 +127,29 @@ for claim in result.claims:
 
 ---
 
+## 👥 Deterministic Entity Resolution (Day 4 Milestone)
+
+VERITY links extracted `Claim` counterparty hints to canonical `Entity` records with a strict **Zero False Merge** policy:
+
+- **Multi-Signal Deterministic Matching**: Official tax IDs (GSTIN, PAN), UPI VPAs, normalized phone numbers (+91), canonical names, trade aliases, and initials.
+- **Explicit Uncertainty & Ambiguity Preservation**: Ambiguous names (e.g. *"Rahul"* with known entities *"Rahul Kumar"* and *"Rahul Sharma"*) strictly yield `AMBIGUOUS` (`selected_entity_id: None`).
+- **Conflict Detection**: Conflicting signals (e.g. matching phone + conflicting UPI VPA) yield `CONFLICTING`.
+- **Amount/Date Invariance**: Financial amounts and dates are never used as identity proof.
+
+**Entity Resolution Service API**:
+```python
+from backend.entity_resolution import EntityRegistry, EntityResolutionService
+
+registry = EntityRegistry(known_entities)
+service = EntityResolutionService(registry=registry)
+
+# Resolve claim to known entity
+resolution = service.resolve_claim(claim)
+print(f"Status: {resolution.status.value} | Entity: {resolution.selected_entity_id} | Score: {resolution.score}")
+```
+
+---
+
 ## 📊 Ground-Truth Benchmark (96 Realistic Cases)
 
 VERITY includes a 100% deterministic ground-truth benchmark containing **96 realistic Indian financial cases** across 12 categories:
