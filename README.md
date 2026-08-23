@@ -150,6 +150,32 @@ print(f"Status: {resolution.status.value} | Entity: {resolution.selected_entity_
 
 ---
 
+## 🔗 Deterministic Transaction Matching (Day 5 Milestone)
+
+VERITY matches extracted `Claim` assertions and verified `Transaction` ledger records using transparent multi-signal evaluation:
+
+- **Supported Topologies**:
+  - **1:1 Matches**: 1 Invoice $\leftrightarrow$ 1 Payment of equal amount.
+  - **Many-to-1 Matches (N:1)**: Milestone payments (e.g. ₹10k + ₹5k + ₹5k) summing to 1 invoice (₹20k).
+  - **1-to-Many Matches (1:N)**: Bulk settlements (e.g. ₹20k payment) covering multiple invoices (₹10k + ₹10k).
+  - **Partial Payments**: Identifies partial payment relationships without prematurely declaring outstanding balances.
+- **Zero False Match Policy**: Equal amounts and dates alone are never sufficient proof to match records across different entities. Ambiguities and conflicts are explicitly preserved.
+- **Bounded Combinatorial Search**: Strict limits ($\le 5$ items) to ensure scale and deterministic runtime.
+
+**Transaction Matching Service API**:
+```python
+from backend.transaction_matching import TransactionMatcher, MatchConfig
+
+matcher = TransactionMatcher(config=MatchConfig(date_tolerance_days=7))
+
+# Match claims against ledger transactions
+result = matcher.match(claims=claims, transactions=transactions)
+for rel in result.relationships:
+    print(f"Topology: {rel.relationship_type.value} | Status: {rel.status.value} | Amount: ₹{rel.matched_amount:,.2f}")
+```
+
+---
+
 ## 📊 Ground-Truth Benchmark (96 Realistic Cases)
 
 VERITY includes a 100% deterministic ground-truth benchmark containing **96 realistic Indian financial cases** across 12 categories:
