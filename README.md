@@ -36,7 +36,7 @@ VERITY **never** blindly trusts text claims or screenshots; it systematically ve
 
 ---
 
-## 🏗️ Day 1 Architecture & Modular Boundaries
+## 🏗️ Architecture & Subsystem Boundaries
 
 VERITY is structured as a clean, modular monolith with explicit subsystem boundaries:
 
@@ -44,7 +44,7 @@ VERITY is structured as a clean, modular monolith with explicit subsystem bounda
 VERITY/
 ├── backend/
 │   ├── domain/               # Canonical domain models (Evidence, Claim, Entity, Transaction, Discrepancy, Reconciliation, Provenance)
-│   ├── ingestion/            # Multimodal raw evidence ingestion interface
+│   ├── ingestion/            # Multimodal raw evidence ingestion (CSV, Text/WhatsApp, PDF, Images) & IngestionService
 │   ├── extraction/           # Claim & transaction extraction interfaces
 │   ├── entity_resolution/    # Counterparty matching across GSTIN, PAN, UPI VPAs, and aliases
 │   ├── transaction_matching/ # 1:1, 1:N (bulk), and N:1 (milestone) transaction matching
@@ -54,11 +54,44 @@ VERITY/
 │   └── reconciliation/       # High-level reconciliation synthesis engine
 ├── data/
 │   ├── benchmark/            # 96-case Ground-Truth Benchmark dataset & loader
-│   └── samples/              # Sample files
-├── docs/                     # Architectural specs, domain models, and pipeline lifecycle
+│   └── samples/              # Realistic samples (Day 2 CSV, TXT, PDF, PNG)
+├── docs/                     # Architectural specs, domain models, pipeline lifecycle, and ingestion specs
 ├── frontend/                 # Scaffolding and roadmap for Day 2/3 UI
-├── scripts/                  # Benchmark generator and integrity validation scripts
-└── tests/                    # Unit, domain, provenance, entity, and benchmark test suites
+├── scripts/                  # Benchmark generator, integrity validator, and sample generators
+└── tests/                    # Unit, domain, provenance, entity, ingestion, and benchmark test suites
+```
+
+---
+
+## 📥 Multimodal Evidence Ingestion (Day 2 Milestone)
+
+VERITY features dedicated, resilient adapters for four major modalities:
+
+1. **Bank CSV Ingestion (`BankCSVAdapter`)**:
+   - Handles standard and Indian banking variations (`Txn Date`, `Value Date`, `Narration`, `Particulars`, `Deposit`, `Withdrawal`, `UTR`, `RRN`).
+   - Granular row-level error reporting (`PARTIAL_SUCCESS`) with exact line numbers.
+2. **Text / WhatsApp Message Ingestion (`TextMessageAdapter`)**:
+   - Full UTF-8 support for English, Hinglish (*"Bhai 20k GPay kar diya"*), Hindi (Devanagari), Tamil, Telugu, Kannada, Bengali.
+   - Automatically parses multi-line WhatsApp and SMS export headers.
+3. **PDF Document Ingestion (`PDFDocumentAdapter`)**:
+   - Extracts plain text via `pypdf`; detects scanned/image-only documents (`is_scanned: True`).
+4. **Image / Payment Screenshot Ingestion (`ImagePaymentScreenshotAdapter`)**:
+   - Ingests and validates PNG, JPG/JPEG, WEBP files via Pillow with dimension/metadata capture.
+
+**Unified Ingestion Service API**:
+```python
+from backend.ingestion import IngestionService
+
+service = IngestionService()
+
+# Ingest single file
+result = service.ingest_file("data/samples/day2/bank_statement.csv")
+
+# Ingest raw WhatsApp text
+text_result = service.ingest_text("Bhai 20k GPay kar diya check kar lo")
+
+# Ingest entire folder (batch)
+batch_result = service.ingest_batch("data/samples/day2/")
 ```
 
 ---

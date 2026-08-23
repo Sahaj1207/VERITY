@@ -73,7 +73,7 @@ graph TD
 | Module | Responsibility |
 |---|---|
 | `backend.domain` | Strongly typed canonical models (`Evidence`, `Claim`, `Entity`, `Transaction`, `Discrepancy`, `ReconciliationRecord`, `ProvenanceNode`). |
-| `backend.ingestion` | Ingests heterogeneous files and feeds into normalized `Evidence` objects with SHA-256 content hashes. |
+| `backend.ingestion` | Ingests heterogeneous files (CSV, TXT, PDF, PNG/JPG/WEBP) via modular adapters (`BankCSVAdapter`, `TextMessageAdapter`, `PDFDocumentAdapter`, `ImagePaymentScreenshotAdapter`) and `IngestionService` into normalized `Evidence` objects with SHA-256 content hashes. |
 | `backend.extraction` | Transforms raw `Evidence` into semantic `Claim` objects and verified `Transaction` ledger records. |
 | `backend.entity_resolution` | Matches names, trading styles, GSTIN, PAN, UPI VPAs, and phone numbers to canonical entities. |
 | `backend.transaction_matching` | Pairs claims and transactions across 1:1, 1:N (bulk settlements), and N:1 (milestone installments). |
