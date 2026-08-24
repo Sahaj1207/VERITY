@@ -6,12 +6,14 @@ Accurately differentiates text-based digital PDFs from scanned image documents.
 
 from __future__ import annotations
 
+import base64
 import io
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import pypdf
+from PIL import Image
 
 from backend.domain.evidence import Evidence, EvidenceModality, EvidenceSourceType
 from backend.ingestion.base import BaseIngestionAdapter
@@ -134,6 +136,11 @@ class PDFDocumentAdapter(BaseIngestionAdapter):
         # Differentiate text-based PDF vs image/scanned PDF
         is_scanned = len(full_extracted_text) == 0
 
+        # For scanned PDFs, attempt to extract embedded images from pages
+        page_images_b64: List[Dict[str, Any]] = []
+        if is_scanned:
+            page_images_b64 = self._extract_page_images(reader)
+
         # Construct raw payload
         if is_scanned:
             raw_payload = f"[SCANNED_PDF_DOCUMENT: {source_name} | Pages: {page_count} | Size: {len(pdf_bytes)} bytes]"
@@ -163,6 +170,10 @@ class PDFDocumentAdapter(BaseIngestionAdapter):
             },
         }
 
+        # Store extracted page images for VLM extraction (scanned PDFs only)
+        if page_images_b64:
+            item_meta["page_images_b64"] = page_images_b64
+
         evidence_id = f"EVID-PDF-{uuid.uuid4().hex[:8]}"
         ev = Evidence(
             id=evidence_id,
@@ -181,5 +192,46 @@ class PDFDocumentAdapter(BaseIngestionAdapter):
                 "source_name": source_name,
                 "page_count": page_count,
                 "is_scanned": is_scanned,
+                "page_images_extracted": len(page_images_b64),
             },
         )
+
+    def _extract_page_images(self, reader: pypdf.PdfReader) -> List[Dict[str, Any]]:
+        """Extract embedded images from PDF pages for VLM extraction.
+
+        Returns a list of dicts with 'page_number', 'image_b64', and 'mime_type'.
+        """
+        page_images: List[Dict[str, Any]] = []
+
+        for page_num, page in enumerate(reader.pages, start=1):
+            try:
+                if not hasattr(page, "images") or not page.images:
+                    continue
+
+                for img_obj in page.images:
+                    try:
+                        img_data = img_obj.data
+                        if not img_data or len(img_data) < 100:
+                            continue
+
+                        # Attempt to open and re-encode as PNG for consistent format
+                        with Image.open(io.BytesIO(img_data)) as pil_img:
+                            buf = io.BytesIO()
+                            pil_img.save(buf, format="PNG")
+                            png_bytes = buf.getvalue()
+
+                        page_images.append({
+                            "page_number": page_num,
+                            "image_b64": base64.b64encode(png_bytes).decode("ascii"),
+                            "mime_type": "image/png",
+                            "width": pil_img.width if hasattr(pil_img, 'width') else None,
+                            "height": pil_img.height if hasattr(pil_img, 'height') else None,
+                        })
+                        # Only extract the first/largest image per page to limit payload size
+                        break
+                    except Exception:
+                        continue
+            except Exception:
+                continue
+
+        return page_images

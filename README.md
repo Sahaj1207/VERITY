@@ -355,20 +355,28 @@ print(result.to_text_report())
 
 ---
 
-## 🌐 Finance Controller API & Interactive UI (Day 11 Milestone)
+## 🌐 Finance Controller API & Interactive UI (Day 11 & Day 12 Milestones)
 
-VERITY includes a production-grade **FastAPI REST API** and an interactive, glassmorphic **Finance Controller Dashboard**:
+VERITY includes a production-hardened **FastAPI REST API** and an interactive **Finance Controller Dashboard**:
 
 - **Unified REST API (`backend.api`)**:
-  - `GET /health` & `GET /api/v1/info`
-  - `POST /api/v1/cases` (Structured CaseInput payload)
-  - `POST /api/v1/cases/text` (Raw WhatsApp / SMS exports)
-  - `POST /api/v1/cases/files` (Multipart uploads for PDF, CSV, Images, Text)
-  - `GET /api/v1/demo-cases` & `POST /api/v1/demo-cases/{case_id}/run`
-  - `GET /api/v1/cases/{case_id}/report` & `GET /api/v1/cases/{case_id}/provenance`
+  - `GET /health` — Basic liveness probe.
+  - `GET /ready` — Subsystem readiness diagnostics (Config, Case Store, Benchmark, Pipeline).
+  - `GET /api/v1/info` — Metadata and supported modalities.
+  - `POST /api/v1/cases` — Structured `CaseInput` payload processing with security bounds.
+  - `POST /api/v1/cases/text` — Raw WhatsApp / SMS chat export ingestion with length limits.
+  - `POST /api/v1/cases/files` — Multipart file uploads (PDF, CSV, PNG/JPG, TXT) with MIME and size validation.
+  - `GET /api/v1/demo-cases` & `POST /api/v1/demo-cases/{case_id}/run` — 10 benchmark demonstration scenarios.
+  - `GET /api/v1/cases/{case_id}/report` & `GET /api/v1/cases/{case_id}/provenance` — Truth reports & DAG trace.
+- **Security & Reliability Hardening (`Day 12`)**:
+  - **Defensive Headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Cache-Control: no-store`.
+  - **Request Tracing**: `X-Request-ID` attached to all request lifecycles.
+  - **Input Sanitization**: Path traversal and null-byte prevention in filenames; MIME whitelisting.
+  - **Structured Error Contract**: Standardized `ErrorResponse` with machine-readable `ErrorCode` enum and traceback masking.
+  - **Configuration**: Typed settings in `backend/config.py` with environment variable overrides (`.env.example`).
 - **Interactive UI (`frontend/`)**:
   - 10 One-Click Benchmark demonstration cases.
-  - Live 8-stage pipeline telemetry with microsecond precision.
+  - Live 8-stage pipeline telemetry with sub-millisecond precision.
   - Financial Truth Hero Card with confidence meters and human-review flags.
   - Deep investigation tabs for Evidence, Matching Topology, Contradictions, Confidence Signals, Recommended Actions, Provenance DAG, and Raw Reports.
 
@@ -376,6 +384,11 @@ VERITY includes a production-grade **FastAPI REST API** and an interactive, glas
 ```bash
 # Launch FastAPI backend with static frontend mounted at http://localhost:8000
 python -m uvicorn backend.api.app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**Running the Smoke Test**:
+```bash
+python scripts/smoke_test_api.py
 ```
 
 ---
@@ -401,35 +414,179 @@ VERITY includes a 100% deterministic ground-truth benchmark containing **96 real
 
 ---
 
+## 🧠 AI Finance Controller & Decision Intelligence (Day 13)
+
+VERITY features an intelligent decision-support layer situated above its deterministic core:
+
+$$\textbf{Core Principle: AI MAY EXPLAIN DETERMINISTIC RESULTS. AI MUST NEVER OVERRIDE DETERMINISTIC FINANCIAL TRUTH.}$$
+
+- **Deterministic Signal Extraction**: Discrepancies, ambiguities, settlements, and confirmations extracted into verifiable signals.
+- **Controller Policy Engine**: Risk classification (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `NONE`) and primary action verdicts (`INVESTIGATE_CONTRADICTION`, `VERIFY_ENTITY`, `VERIFY_TRANSACTION`, `REVIEW_CASE`, `REQUEST_MISSING_EVIDENCE`, `CONFIRM_RECONCILIATION`).
+- **Action Prioritization**: Ranked action directives (1..10) with exact domain IDs.
+- **Strict Fact-Checking AI Explainer**: Validates natural language generation against known amounts and entities with automatic fallback.
+- **Grounded Q&A**: Answers natural-language controller queries citing exact supporting IDs.
+
+---
+
+## 👤 Human Review & Audit Workflow (Day 14)
+
+$$\textbf{Core Invariant: HUMAN REVIEW DECISION } \neq \textbf{ DETERMINISTIC FINANCIAL TRUTH.}$$
+
+- **Non-Destructive Review Layer**: A human controller may record decisions (e.g. `CONFIRMED`, `NEEDS_MORE_EVIDENCE`, `ESCALATED`, `ACKNOWLEDGED`), but this **never** overwrites the underlying mathematical and deterministic truth.
+- **Finite State Workflow**: Governs case lifecycle (`NOT_REQUIRED` $\to$ `PENDING` $\to$ `IN_PROGRESS` $\to$ `RESOLVED` $\to$ `CLOSED`).
+- **Append-Only Notes & Evidence Inspection**: Audit logs track every evidence artifact inspected without modifying raw evidence objects.
+- **Cryptographic Audit Chaining**: Every review mutation creates an immutable `AuditEvent` bound via SHA-256 hash chaining ($H_i = \text{SHA-256}(H_{i-1} \parallel \text{Event}_i)$).
+- **Cross-Case Protection**: Prevents unauthorized references to artifacts outside the active case context.
+
+---
+
+## 📊 Financial Case Portfolio & Operations Intelligence (Day 15)
+
+$$\textbf{Core Invariant: PORTFOLIO INTELLIGENCE MUST NEVER MODIFY FINANCIAL TRUTH.}$$
+$$\textbf{OPERATIONAL STATUS } \neq \textbf{ DETERMINISTIC FINANCIAL TRUTH.}$$
+
+- **Portfolio Aggregation & Exposure**: Synthesizes open, in-review, escalated, and resolved cases with strict zero double-counting.
+- **SLA & Aging Engine**: Computes deterministic deadlines by priority (`CRITICAL`: 4h, `HIGH`: 24h, `MEDIUM`: 72h, `LOW`: 7d) tracking `ON_TRACK`, `DUE_SOON` ($\le 20\%$ window remaining), and `OVERDUE` states.
+- **Reviewer Assignment & Capacity Monitoring**: Tracks active case allocations per reviewer with automated overload detection (`critical > 5`, `open > 20`, `overdue > 5`).
+- **Deterministic Prioritization**: Computes explainable `PortfolioPriorityScore` combining controller risk, contradictions, SLA urgency, exposure, and unresolved issues.
+- **Multi-Key Query Engine**: Search across cases, counterparties, UTRs, amounts, and dates with bounded pagination.
+
+---
+
+## 💾 Persistent Storage & Durable Audit Infrastructure (Day 16 Milestone)
+
+VERITY features an audit-grade, restart-safe data layer backed by standard SQL repositories:
+- **18 Strongly Typed SQL Tables**: Covers cases, raw evidence, extracted claims, resolved entities, bank transactions, match topologies, deduplication clusters, discrepancies, reconciliation results, truth reports, controller decisions, human review records, append-only notes, evidence inspections, audit event logs, reviewer assignments, portfolio operational state, and idempotency records.
+- **Deterministic Truth & Raw Evidence Immutability**: Financial truth results and ingested raw evidence fingerprints are strictly immutable in persistent storage.
+- **Cryptographic SHA-256 Hash Chaining**: Every audit event is chained to its predecessor ($H_i = \text{SHA-256}(H_{i-1} \parallel \text{Event}_i)$) with automated database-level tamper detection.
+- **Atomic Transactions & Savepoints**: All-or-nothing case persistence with nested savepoint rollbacks and zero partial failure leaks.
+- **Restart Recovery**: 100% operational restoration of portfolio state, reviewer assignments, review notes, and audit chains across cold application restarts.
+
+---
+
+## 👁️ Real Multimodal Evidence Intelligence (Day 17 Milestone)
+
+VERITY incorporates true vision-language and semantic extraction for messy real-world evidence:
+- **Multimodal VLM Transport**: Passes raw image pixels (`PNG`, `JPEG`, `WEBP`) as base64-encoded payloads into Vision LLM providers (`google-genai` `gemini-3.6-flash`) without polluting financial data models.
+- **Scanned PDF Page Extraction**: Automatically detects image-only PDFs, renders embedded page images, and extracts structured claims via multimodal VLM.
+- **Messy Hinglish & Relative Dates**: Robust extraction for natural vernacular WhatsApp text (e.g. *"bhai kal 20k bhej diya usko UPI se"*), resolving relative date anchors (`kal`, `yesterday`, `parso`, `Tuesday`) against reference timestamps.
+- **Earliest Assertion Disambiguation**: Deterministically selects the primary asserted amount based on textual positioning in sentences with conflicting numbers.
+- **Strict Anti-Hallucination Guardrails**: Null values for omitted amounts/counterparties are preserved as `UNKNOWN` rather than being fabricated.
+- **Tri-Tier Verification**: Strict separation of Mock (CI/CD), Local Fixtures (offline pipeline), and Live Gemini Inference verification tiers.
+
+---
+
+## 🏛️ Cross-Case Intelligence & Counterparty Memory (Day 18 Milestone)
+
+VERITY features an institutional counterparty memory layer backed by persistent SQL analytics:
+- **Cross-Case Reference History**: Detects reused bank UTRs and invoice IDs across distinct cases and counterparties (`⚠️ REFERENCE REUSE DETECTED`).
+- **Counterparty Risk & Volume Aggregation**: Tracks lifetime transaction volume, dispute ratios, and recurring settlement patterns.
+- **Strict Truth Isolation**: Historical intelligence computes operational risk flags without ever mutating intra-case mathematical reconciliation truth.
+
+---
+
+## ⚡ Proactive Controller Actions & Human-in-the-Loop Remediation (Day 19 Milestone)
+
+- **Grounded Notice Generation**: Generates contextual Vendor Dispute Notices, Payment Follow-Up reminders, and Missing Evidence requests cited strictly against reconciliation evidence.
+- **Double-Entry Draft Journal Engine**: Generates mathematically balanced draft journal vouchers ($\sum \text{Debits} = \sum \text{Credits}$, $\text{len} \ge 2$) explicitly labeled as `DRAFT` with configurable Chart of Accounts support.
+- **Mandatory Human-in-the-Loop Gate**: All proposed actions start as `PENDING_APPROVAL`. Zero external dispatches occur without explicit human controller authorization.
+
+---
+
+## 🎯 Golden Demo & Finance Controller Command Center (Day 20 Milestone)
+
+- **7-Scene Panoramic Narrative**: Complete visual cockpit taking judges from messy heterogeneous evidence through side-by-side AI Extraction vs. Deterministic Truth, Counterparty Memory, Controller Decision Brief, Human Approval, and Cryptographic Provenance.
+- **5 Curated Demo Scenarios**: Instant 1-click execution of Clean 1:1 (`DEMO-01`), Partial Settlement (`DEMO-02`), Amount Contradiction (`DEMO-03`), Messy Multimodal Chat (`DEMO-04`), and Hero Counterparty Reference Reuse (`DEMO-05`).
+
+---
+
+## 🛡️ Adversarial Security & Release Hardening (Day 21 Milestone)
+
+- **23 Adversarial Attack Vectors Blocked**: Mathematical fact-grounding, double-entry balance validation, transaction crash rollbacks, and SHA-256 tamper-evident chain verification.
+- **Full Invariant Preservation**: 100% deterministic truth immutability, zero AI hallucination of accounting figures, and complete cross-case isolation.
+
+---
+
 ## 🚀 Quickstart & Verification
 
 ### 1. Requirements
 - Python 3.10+
-- `pip install pydantic pytest`
+- `pip install -r requirements.txt` (including `fastapi`, `uvicorn`, `google-genai`, `pypdf`, `pillow`, `pytest`)
 
-### 2. Run Automated Test Suite
+### 2. Run Complete Automated Test Suite (393 Tests)
 ```bash
 python -m pytest tests/ -v
 ```
 
-### 3. Run Benchmark Integrity Validator
+### 3. Run Ground-Truth Benchmark Validation (96 Cases)
 ```bash
 python scripts/validate_benchmark.py
 ```
 
-### 4. Regenerate Benchmark Dataset (Deterministic)
+### 4. Run Multimodal Evidence Extraction Evaluation (16 Scenarios)
 ```bash
-python scripts/generate_benchmark.py
+python scripts/evaluate_extraction.py
 ```
+
+### 5. Run Cross-Case Intelligence & Reference History Evaluation (12 Scenarios)
+```bash
+python scripts/evaluate_cross_case.py
+```
+
+### 6. Run Proactive Remediation & Journal Safety Evaluation (12 Scenarios)
+```bash
+python scripts/evaluate_remediation.py
+```
+
+### 7. Run Persistent Storage & Audit Infrastructure Evaluation (12 Scenarios)
+```bash
+python scripts/evaluate_storage.py
+```
+
+### 8. Run Case Portfolio & Operations Evaluation (12 Scenarios)
+```bash
+python scripts/evaluate_portfolio.py
+```
+
+### 9. Run Human Review & Audit Workflow Evaluation (10 Scenarios)
+```bash
+python scripts/evaluate_review_workflow.py
+```
+
+### 10. Run Controller Decision Intelligence Evaluation (10 Scenarios)
+```bash
+python scripts/evaluate_controller.py
+```
+
+### 11. Run API Smoke Tests (10 System Checks)
+```bash
+python scripts/smoke_test_api.py
+```
+
+### 12. Launch Fast and Interactive Web Dashboard
+```bash
+python -m uvicorn backend.api.app:app --reload --port 8000
+```
+Visit `http://localhost:8000` to interact with the **🎯 Controller Command Center (Golden Demo)**, visual Financial Truth Reconstructor, Case Portfolio Console, Human Review Workspace, and Storage & Audit Integrity Monitor.
 
 ---
 
-## 🗺️ Planned Reconciliation Pipeline
+## 🗺️ Unified Reconciliation & Intelligence Pipeline
 
-1. **Ingestion**: Capture Bank CSVs, PDFs, Invoices, WhatsApp messages, Screenshots; compute SHA-256 digests.
-2. **Extraction**: Parse raw evidence into structured `Claim` and `Transaction` objects.
-3. **Entity Resolution**: Map counterparties across trade aliases, GSTINs, PANs, and UPI VPAs.
-4. **Deduplication**: Cluster cross-modal evidence (e.g. GPay screenshot + Bank statement line) to prevent double counting.
-5. **Transaction Matching**: Solve 1:1, 1:N bulk, and N:1 milestone installment mappings.
+1. **Ingestion & Multimodal Vision**: Ingest Bank CSVs, PDFs, Invoices, WhatsApp messages, Screenshots; compute SHA-256 digests and preserve image base64 metadata.
+2. **Extraction**: Parse raw evidence into structured `Claim` and `Transaction` objects via deterministic parsers or Gemini VLM (`gemini-3.6-flash`).
+3. **Entity Resolution**: Map counterparties across trade aliases, GSTINs, PANs, and UPI VPAs with zero false merges.
+4. **Transaction Matching**: Solve 1:1, 1:N bulk, and N:1 milestone installment mappings.
+5. **Deduplication**: Cluster cross-modal evidence (e.g. GPay screenshot + Bank statement line) to prevent double counting.
 6. **Contradiction Detection**: Flag discrepancies between asserted claims and verified ledger reality.
-7. **Synthesis & Provenance Sealing**: Output verified `ReconciliationRecord` with complete audit lineage DAG.
+7. **Reconciliation Synthesis**: Output verified `ReconciliationRecord` with complete audit lineage DAG.
+8. **Explainable Truth Reporting**: Generate structured, tamper-evident `FinancialTruthReport`.
+9. **AI Finance Controller**: Assign risk ratings, actionable next steps, and grounded natural-language brief.
+10. **Cross-Case Institutional Memory**: Query historical counterparty volume and detect cross-case reference/UTR reuse.
+11. **Human-Gated Remediation**: Generate fact-grounded notice drafts and balanced double-entry draft journal vouchers.
+12. **Human Review & Audit**: Finite-state case investigation, append-only notes, and cryptographic hash-chained audit logging.
+13. **Portfolio & Operations**: Portfolio-wide exposure aggregation, SLA aging, reviewer assignment, and prioritization queue.
+14. **Persistent Storage & Audit**: Durable, ACID-compliant SQLite storage with tamper-evident SHA-256 audit lineage.
+
+
+

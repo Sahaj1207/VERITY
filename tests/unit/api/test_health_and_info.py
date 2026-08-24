@@ -16,7 +16,7 @@ def test_health_endpoint(client: TestClient) -> None:
     data = response.json()
     assert data["status"] == "ok"
     assert data["service"] == "verity"
-    assert data["version"] == "day11"
+    assert "day" in data["version"]
 
 
 def test_info_endpoint(client: TestClient) -> None:

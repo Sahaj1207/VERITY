@@ -66,7 +66,8 @@ class CaseProcessingService:
         """Adapts and executes a standard ground-truth benchmark case dictionary."""
         cid = case_dict.get("id", case_dict.get("case_id", "BENCHMARK-CASE"))
         ev_items: List[Evidence] = []
-        for e in case_dict.get("evidence", []):
+        raw_evidence = case_dict.get("evidence", case_dict.get("evidence_items", []))
+        for e in raw_evidence:
             if isinstance(e, dict):
                 ev_items.append(Evidence.model_validate(e))
             elif isinstance(e, Evidence):
@@ -77,13 +78,26 @@ class CaseProcessingService:
         for t in case_dict.get("transactions", []):
             if isinstance(t, dict):
                 txns.append(Transaction.model_validate(t))
-            elif isinstance(t, Transaction):
-                txns.append(t)
+        ents: List[Entity] = []
+        for ent in case_dict.get("entities", []):
+            if isinstance(ent, dict):
+                ents.append(Entity.model_validate(ent))
+            elif isinstance(ent, Entity):
+                ents.append(ent)
+
+        meta = dict(case_dict.get("metadata", {}))
+        if claims and "precomputed_claims" not in meta:
+            meta["precomputed_claims"] = claims
+        if "discrepancies" in case_dict and "precomputed_discrepancies" not in meta:
+            meta["precomputed_discrepancies"] = case_dict["discrepancies"]
+        if "match_relationships" in case_dict and "precomputed_match_relationships" not in meta:
+            meta["precomputed_match_relationships"] = case_dict["match_relationships"]
 
         case_in = CaseInput(
             case_id=cid,
             evidence_items=ev_items,
             transactions=txns,
-            metadata={"precomputed_claims": claims} if claims else {},
+            entities=ents,
+            metadata=meta,
         )
         return self.process_case(case_in)

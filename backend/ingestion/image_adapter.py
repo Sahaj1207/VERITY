@@ -6,6 +6,7 @@ validates integrity, extracts technical dimensions/metadata, and creates canonic
 
 from __future__ import annotations
 
+import base64
 import io
 import uuid
 from pathlib import Path
@@ -138,6 +139,11 @@ class ImagePaymentScreenshotAdapter(BaseIngestionAdapter):
 
         st = source_type or EvidenceSourceType.MANUAL_UPLOAD
         base_meta = metadata or {}
+
+        # Determine MIME type for VLM providers
+        mime_map = {"PNG": "image/png", "JPEG": "image/jpeg", "WEBP": "image/webp"}
+        mime_type = mime_map.get(img_format, f"image/{img_format.lower()}")
+
         item_meta = {
             **base_meta,
             "source_name": source_name,
@@ -146,6 +152,9 @@ class ImagePaymentScreenshotAdapter(BaseIngestionAdapter):
             "height_px": height,
             "color_mode": mode,
             "file_size_bytes": len(img_bytes),
+            "mime_type": mime_type,
+            # Base64-encoded image data for VLM extraction — never used in financial calculations
+            "image_bytes_b64": base64.b64encode(img_bytes).decode("ascii"),
         }
 
         raw_payload = (

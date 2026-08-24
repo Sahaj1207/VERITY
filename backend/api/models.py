@@ -2,12 +2,36 @@
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from backend.domain.entity import Entity
 from backend.domain.evidence import Evidence
 from backend.domain.transaction import Transaction
+
+
+class ErrorCode(str, Enum):
+    """Stable API error codes."""
+    INVALID_INPUT = "INVALID_INPUT"
+    UNSUPPORTED_MEDIA = "UNSUPPORTED_MEDIA"
+    FILE_TOO_LARGE = "FILE_TOO_LARGE"
+    CASE_NOT_FOUND = "CASE_NOT_FOUND"
+    PROCESSING_ERROR = "PROCESSING_ERROR"
+    RESOURCE_LIMIT = "RESOURCE_LIMIT"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+
+
+class ErrorDetail(BaseModel):
+    """Structured error payload details."""
+    code: ErrorCode = Field(..., description="Stable machine-readable error code")
+    message: str = Field(..., description="Human-readable explanation")
+    request_id: str = Field(..., description="Unique request identifier for tracing")
+
+
+class ErrorResponse(BaseModel):
+    """Canonical API error response container."""
+    error: ErrorDetail
 
 
 # -------------------------------------------------------------
@@ -40,7 +64,22 @@ class HealthResponse(BaseModel):
     """Health check status response."""
     status: str = Field(default="ok")
     service: str = Field(default="verity")
-    version: str = Field(default="day11")
+    version: str = Field(default="day12")
+
+
+class ReadinessResponse(BaseModel):
+    """System readiness check response validating all internal subsystems."""
+    status: str = Field(default="ready", description="'ready' or 'unready'")
+    service: str = Field(default="verity")
+    environment: str = Field(default="development")
+    config_valid: bool = Field(default=True)
+    case_store_ready: bool = Field(default=True)
+    database_ready: bool = Field(default=True)
+    audit_store_ready: bool = Field(default=True)
+    benchmark_available: bool = Field(default=True)
+    pipeline_ready: bool = Field(default=True)
+    active_cases_in_memory: int = Field(default=0)
+    version: str = Field(default="day16")
 
 
 class InfoResponse(BaseModel):
