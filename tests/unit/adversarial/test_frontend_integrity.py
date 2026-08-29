@@ -19,3 +19,16 @@ def test_all_app_js_element_ids_exist_in_index_html():
     # Identify any missing IDs
     missing_ids = js_ids - html_ids
     assert len(missing_ids) == 0, f"The following IDs referenced in app.js are missing from index.html: {missing_ids}"
+
+
+def test_journal_voucher_export_button_and_handler():
+    index_html = Path("frontend/index.html").read_text(encoding="utf-8")
+    app_js = Path("frontend/app.js").read_text(encoding="utf-8")
+
+    # Verify button exists with proper ID and click trigger
+    assert 'id="btn-export-journal"' in index_html
+    assert 'exportJournalVoucher' in app_js
+    assert 'btn-export-journal' in app_js
+    assert 'Blob' in app_js
+    assert 'createObjectURL' in app_js
+    assert 'balanced_voucher.json' in app_js
