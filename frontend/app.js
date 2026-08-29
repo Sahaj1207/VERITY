@@ -18,6 +18,9 @@ let activeReportView = "text"; // "text" | "json"
 let selectedFiles = [];
 let healthInterval = null;
 let activePortfolioFilter = "all";
+let truthReplaySnapshot = null;
+let currentReplayStep = 0;
+let replayPreviousFocus = null;
 
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
@@ -245,16 +248,85 @@ function initAppShell() {
     backdrop.addEventListener("click", closeMobileDrawer);
   }
 
-  // Keyboard Accessibility: Escape closes drawer and open modals
+  // Keyboard Accessibility: Escape closes drawer and open modals, Tab traps focus, Arrow keys navigate Replay
   document.addEventListener("keydown", (e) => {
+    const replayModal = document.getElementById("replay-modal-overlay");
+    const isReplayActive = replayModal && (replayModal.classList.contains("active") || replayModal.style.display === "flex");
+
     if (e.key === "Escape") {
       closeMobileDrawer();
       const assignModal = document.getElementById("modal-assign-reviewer");
       if (assignModal && assignModal.style.display !== "none") {
         assignModal.style.display = "none";
       }
+      if (isReplayActive) {
+        closeTruthReplay();
+      }
+    } else if (isReplayActive) {
+      if (e.key === "Tab") {
+        const replayContainer = document.getElementById("replay-container");
+        if (replayContainer) {
+          const focusables = Array.from(
+            replayContainer.querySelectorAll(
+              'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+          ).filter((el) => el.offsetParent !== null || el.offsetWidth > 0 || el.offsetHeight > 0);
+
+          if (focusables.length > 0) {
+            const firstEl = focusables[0];
+            const lastEl = focusables[focusables.length - 1];
+
+            if (e.shiftKey) {
+              if (document.activeElement === firstEl || !replayContainer.contains(document.activeElement)) {
+                e.preventDefault();
+                lastEl.focus();
+              }
+            } else {
+              if (document.activeElement === lastEl || !replayContainer.contains(document.activeElement)) {
+                e.preventDefault();
+                firstEl.focus();
+              }
+            }
+          }
+        }
+      } else if (e.key === "ArrowRight") {
+        const isInput = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+        if (!isInput) {
+          e.preventDefault();
+          nextReplayStep();
+        }
+      } else if (e.key === "ArrowLeft") {
+        const isInput = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+        if (!isInput) {
+          e.preventDefault();
+          previousReplayStep();
+        }
+      } else if (e.key === " " || e.code === "Space") {
+        const isInteractive = ["BUTTON", "INPUT", "TEXTAREA", "SELECT", "A"].includes(document.activeElement?.tagName);
+        if (!isInteractive) {
+          e.preventDefault(); // No auto-play; prevent background scroll
+        }
+      }
     }
   });
+
+  // Financial Truth Replay Navigation & Trigger Buttons
+  const launchReplayBtn = document.getElementById("btn-launch-replay");
+  if (launchReplayBtn) {
+    launchReplayBtn.addEventListener("click", startTruthReplay);
+  }
+  const closeReplayBtn = document.getElementById("replay-btn-close");
+  if (closeReplayBtn) {
+    closeReplayBtn.addEventListener("click", closeTruthReplay);
+  }
+  const prevReplayBtn = document.getElementById("replay-btn-prev");
+  if (prevReplayBtn) {
+    prevReplayBtn.addEventListener("click", previousReplayStep);
+  }
+  const nextReplayBtn = document.getElementById("replay-btn-next");
+  if (nextReplayBtn) {
+    nextReplayBtn.addEventListener("click", nextReplayStep);
+  }
 
   // Sidebar Nav Items Navigation (Single Source of Truth)
   const navItems = document.querySelectorAll(".sidebar-nav .nav-item");
@@ -4183,5 +4255,847 @@ function updateGoldenCommandCenter() {
         </div>
       </div>
     `;
+  }
+}
+
+// =============================================================
+// FINANCIAL TRUTH REPLAY — IMMUTABLE SNAPSHOT ENGINE
+// =============================================================
+
+/**
+ * Safely deep-clones a domain state object, stripping cyclic references and isolating state.
+ */
+function safeReplayClone(obj) {
+  if (obj == null) return null;
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Safely escapes dynamic HTML values in Replay rendering to prevent XSS/injection.
+ */
+function escapeReplayHtml(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
+ * Constructs an immutable, sanitized snapshot of active case truth across 9 deterministic stages.
+ * Guaranteed zero mutable sharing with global state objects.
+ */
+function buildTruthReplaySnapshot(caseResult, controllerBrief, reviewRecord) {
+  if (!caseResult) return null;
+
+  const rawCase = safeReplayClone(caseResult) || {};
+  const rawCtrl = safeReplayClone(controllerBrief) || {};
+  const rawRev = safeReplayClone(reviewRecord) || {};
+
+  const caseId = rawCase.case_id || "UNKNOWN_CASE";
+  const truthReport = rawCase.truth_report || {};
+  const finSummary = rawCase.financial_summary || {};
+  const provRefs = truthReport.provenance || rawCase.provenance || {};
+
+  // Stage 1: SOURCE
+  const evSummary = Array.isArray(truthReport.evidence_summary) ? truthReport.evidence_summary : (Array.isArray(rawCase.evidence_items) ? rawCase.evidence_items : []);
+  const sourceFacts = evSummary.map((ev) => ({
+    evidence_id: ev.evidence_id || ev.id || "EVID_UNKNOWN",
+    modality: ev.modality || "UNSPECIFIED",
+    source_name: ev.source_name || ev.filename || "Source File",
+    sha256_hash: ev.sha256_hash || ev.content_hash || "UNHASHED",
+    summary: ev.summary || ""
+  }));
+  const sourceGroundingIds = sourceFacts.map((s) => s.evidence_id).filter(Boolean);
+
+  // Stage 2: CLAIM
+  const claimsSummary = Array.isArray(truthReport.claims_summary) ? truthReport.claims_summary : (Array.isArray(rawCase.claims) ? rawCase.claims : []);
+  const claimFacts = claimsSummary.map((clm) => ({
+    claim_id: clm.claim_id || clm.id || "CLM_UNKNOWN",
+    evidence_id: clm.evidence_id || "",
+    claim_type: clm.claim_type || "FINANCIAL_CLAIM",
+    claimed_amount: clm.claimed_amount != null ? Number(clm.claimed_amount) : (clm.amount != null ? Number(clm.amount) : null),
+    claimed_date: clm.claimed_date || clm.date || "",
+    counterparty_hint: clm.counterparty_hint || "",
+    reference_id_hint: clm.reference_id_hint || clm.reference_id || ""
+  }));
+  const claimGroundingIds = claimFacts.map((c) => c.claim_id).filter(Boolean);
+  const claimParentIds = Array.from(new Set(claimFacts.map((c) => c.evidence_id).filter(Boolean)));
+
+  // Stage 3: TRANSACTION
+  const txnSummary = Array.isArray(truthReport.transaction_summary) ? truthReport.transaction_summary : (Array.isArray(rawCase.transactions) ? rawCase.transactions : []);
+  const txnFacts = txnSummary.map((tx) => ({
+    transaction_id: tx.transaction_id || tx.id || "TXN_UNKNOWN",
+    amount: tx.amount != null ? Number(tx.amount) : 0,
+    direction: tx.direction || "CREDIT",
+    timestamp: tx.timestamp || tx.date || "",
+    bank_reference: tx.bank_reference || tx.reference_id || "",
+    payment_method: tx.payment_method || ""
+  }));
+  const txnGroundingIds = txnFacts.map((t) => t.transaction_id).filter(Boolean);
+
+  // Stage 4: MATCH
+  const matchSummary = truthReport.matching_summary || rawCase.matching_summary || null;
+  const matchFacts = matchSummary ? {
+    match_relationship_id: matchSummary.match_relationship_id || "",
+    topology: matchSummary.topology || "ONE_TO_ONE",
+    status: matchSummary.status || "MATCHED",
+    score: matchSummary.score != null ? Number(matchSummary.score) : 1.0,
+    matched_signals: Array.isArray(matchSummary.matched_signals) ? matchSummary.matched_signals : [],
+    conflicting_signals: Array.isArray(matchSummary.conflicting_signals) ? matchSummary.conflicting_signals : [],
+    explanation: matchSummary.explanation || ""
+  } : null;
+  const matchGroundingIds = matchFacts?.match_relationship_id ? [matchFacts.match_relationship_id] : [];
+  const matchParentIds = Array.from(new Set([
+    ...(Array.isArray(provRefs.claim_ids) ? provRefs.claim_ids : []),
+    ...(Array.isArray(provRefs.transaction_ids) ? provRefs.transaction_ids : [])
+  ])).filter(Boolean);
+
+  // Stage 5: CONFLICT_CHECK
+  const contSummary = Array.isArray(truthReport.contradiction_summary) ? truthReport.contradiction_summary : (Array.isArray(rawCase.contradictions) ? rawCase.contradictions : []);
+  const conflictFacts = contSummary.map((cnt) => ({
+    discrepancy_id: cnt.discrepancy_id || cnt.id || "DISC_UNKNOWN",
+    discrepancy_type: cnt.discrepancy_type || cnt.type || "DISCREPANCY",
+    severity: cnt.severity || "WARNING",
+    message: cnt.message || cnt.description || "",
+    expected_value: cnt.expected_value != null ? String(cnt.expected_value) : "",
+    observed_value: cnt.observed_value != null ? String(cnt.observed_value) : "",
+    involved_evidence_ids: Array.isArray(cnt.involved_evidence_ids) ? cnt.involved_evidence_ids : []
+  }));
+  const conflictGroundingIds = conflictFacts.map((c) => c.discrepancy_id).filter(Boolean);
+  const conflictParentIds = Array.from(new Set(conflictFacts.flatMap((c) => c.involved_evidence_ids).filter(Boolean)));
+
+  // Stage 6: RECONCILIATION
+  const reconSummary = truthReport.reconciliation_summary || rawCase.reconciliation || {};
+  const reconFacts = {
+    reconciliation_id: reconSummary.reconciliation_id || rawCase.reconciliation_id || `REC-${caseId}`,
+    status: reconSummary.status || rawCase.status || "CONFIRMED",
+    expected_amount: reconSummary.expected_amount != null ? Number(reconSummary.expected_amount) : (finSummary.claimed_amount != null ? Number(finSummary.claimed_amount) : 0),
+    matched_amount: reconSummary.matched_amount != null ? Number(reconSummary.matched_amount) : (finSummary.matched_amount != null ? Number(finSummary.matched_amount) : 0),
+    outstanding_amount: reconSummary.outstanding_amount != null ? Number(reconSummary.outstanding_amount) : (finSummary.outstanding_amount != null ? Number(finSummary.outstanding_amount) : 0),
+    confidence_score: reconSummary.confidence_score != null ? Number(reconSummary.confidence_score) : (rawCase.confidence != null ? Number(rawCase.confidence) : 1.0),
+    reason_codes: Array.isArray(reconSummary.reason_codes) ? reconSummary.reason_codes : []
+  };
+  const reconGroundingIds = reconFacts.reconciliation_id ? [reconFacts.reconciliation_id] : [];
+  const reconParentIds = matchGroundingIds.length > 0 ? matchGroundingIds : [];
+
+  // Stage 7: CONTROLLER
+  const ctrlDirectives = Array.isArray(rawCtrl.action_directives) ? rawCtrl.action_directives : [];
+  const ctrlGroundingEv = Array.isArray(rawCtrl.grounding_evidence_ids) ? rawCtrl.grounding_evidence_ids : (Array.isArray(rawCtrl.involved_evidence_ids) ? rawCtrl.involved_evidence_ids : []);
+  const ctrlGroundingTx = Array.isArray(rawCtrl.grounding_transaction_ids) ? rawCtrl.grounding_transaction_ids : (Array.isArray(rawCtrl.involved_transaction_ids) ? rawCtrl.involved_transaction_ids : []);
+  const controllerFacts = {
+    controller_status: rawCtrl.controller_status || rawCtrl.status || "EVALUATED",
+    risk_rating: rawCtrl.risk_rating || rawCtrl.risk_level || "NONE",
+    recommended_decision: rawCtrl.recommended_decision || rawCtrl.action || "CONFIRM_RECONCILIATION",
+    executive_summary: rawCtrl.executive_summary || rawCtrl.brief_text || "",
+    human_review_required: Boolean(rawCtrl.human_review_required != null ? rawCtrl.human_review_required : rawCase.requires_review),
+    action_directives: ctrlDirectives,
+    decision_factors: Array.isArray(rawCtrl.decision_factors) ? rawCtrl.decision_factors : []
+  };
+  const controllerGroundingIds = Array.from(new Set([...ctrlGroundingEv, ...ctrlGroundingTx])).filter(Boolean);
+  const controllerParentIds = reconGroundingIds.length > 0 ? reconGroundingIds : [];
+
+  // Stage 8: HUMAN_DECISION
+  const reviewNotes = Array.isArray(rawRev.reviewer_notes) ? rawRev.reviewer_notes : (Array.isArray(rawRev.notes) ? rawRev.notes : []);
+  const hasHumanDecision = Boolean(rawRev.decision || rawRev.review_status === "RESOLVED" || rawRev.review_status === "CLOSED");
+  const humanFacts = {
+    review_id: rawRev.review_id || (rawRev.id || "UNASSIGNED"),
+    review_status: rawRev.review_status || rawRev.status || (rawCase.requires_review ? "PENDING" : "NOT_REQUIRED"),
+    decision: rawRev.decision || (hasHumanDecision ? "RESOLVED" : "NONE"),
+    rationale: rawRev.rationale || rawRev.decision_rationale || "",
+    reviewer_id: rawRev.reviewer_id || "",
+    reviewer_name: rawRev.reviewer_name || (rawRev.reviewer_id || "Unassigned"),
+    is_locked: Boolean(rawRev.is_locked),
+    completed_at: rawRev.completed_at || "",
+    notes: reviewNotes.map((n) => typeof n === "object" ? (n.text || n.note || "") : String(n)).filter(Boolean)
+  };
+  const humanGroundingIds = humanFacts.review_id !== "UNASSIGNED" ? [humanFacts.review_id] : [];
+  const humanParentIds = [];
+
+  // Stage 9: FINAL_TRUTH
+  const finalStatus = String(rawCase.status || "UNVERIFIED").toUpperCase();
+  const finalConfidence = rawCase.confidence != null ? Number(rawCase.confidence) : 1.0;
+  const finalFacts = {
+    case_id: caseId,
+    status: finalStatus,
+    confidence: finalConfidence,
+    requires_review: Boolean(rawCase.requires_review),
+    total_execution_time_ms: rawCase.total_execution_time_ms != null ? Number(rawCase.total_execution_time_ms) : 0,
+    text_report: rawCase.text_report || truthReport.summary || "",
+    provenance_hash: provRefs.algorithm || "SHA-256"
+  };
+  const finalGroundingIds = [caseId];
+  const finalParentIds = Array.from(new Set([
+    ...reconGroundingIds,
+    ...humanGroundingIds
+  ])).filter(Boolean);
+
+  // Compile 9 Stage Descriptors
+  const stages = [
+    {
+      key: "SOURCE",
+      title: "Source Artifact Ingestion",
+      status: sourceFacts.length > 0 ? "VERIFIED" : "PENDING",
+      facts: sourceFacts,
+      why: "Cryptographic SHA-256 evidence ingested and fingerprinted.",
+      groundingIds: sourceGroundingIds,
+      parentIds: []
+    },
+    {
+      key: "CLAIM",
+      title: "Extracted Financial Claims",
+      status: claimFacts.length > 0 ? "EXTRACTED" : "NO_CLAIMS",
+      facts: claimFacts,
+      why: "Deterministic extraction of stated monetary claims and reference identifiers.",
+      groundingIds: claimGroundingIds,
+      parentIds: claimParentIds
+    },
+    {
+      key: "TRANSACTION",
+      title: "Verified Bank Ledger Transactions",
+      status: txnFacts.length > 0 ? "VERIFIED" : "NO_TRANSACTIONS",
+      facts: txnFacts,
+      why: "Authoritative bank statement and ledger transactions loaded.",
+      groundingIds: txnGroundingIds,
+      parentIds: []
+    },
+    {
+      key: "MATCH",
+      title: "Deterministic Transaction Matching",
+      status: matchFacts?.status || "EVALUATED",
+      facts: matchFacts,
+      why: matchFacts?.explanation || "Algorithmic matching across payment signals.",
+      groundingIds: matchGroundingIds,
+      parentIds: matchParentIds
+    },
+    {
+      key: "CONFLICT_CHECK",
+      title: "Contradiction & Discrepancy Detection",
+      status: conflictFacts.length > 0 ? "CONTRADICTED" : "CLEAN",
+      facts: conflictFacts,
+      why: conflictFacts.length > 0 ? "Rule-based contradiction invariants triggered." : "No conflicting financial claims detected.",
+      groundingIds: conflictGroundingIds,
+      parentIds: conflictParentIds
+    },
+    {
+      key: "RECONCILIATION",
+      title: "Deterministic Financial Reconciliation",
+      status: reconFacts.status,
+      facts: reconFacts,
+      why: "Double-entry reconciliation rules evaluated across all claims and ledger entries.",
+      groundingIds: reconGroundingIds,
+      parentIds: reconParentIds
+    },
+    {
+      key: "CONTROLLER",
+      title: "AI Finance Controller Directives",
+      status: controllerFacts.controller_status,
+      facts: controllerFacts,
+      why: controllerFacts.executive_summary || "Deterministic policy evaluation.",
+      groundingIds: controllerGroundingIds,
+      parentIds: controllerParentIds
+    },
+    {
+      key: "HUMAN_DECISION",
+      title: "Human Review & Audit Decision",
+      status: humanFacts.review_status,
+      facts: humanFacts,
+      why: humanFacts.decision !== "NONE" ? (humanFacts.rationale || "Human reviewer decision recorded.") : "Case review is pending or no human intervention required.",
+      groundingIds: humanGroundingIds,
+      parentIds: humanParentIds
+    },
+    {
+      key: "FINAL_TRUTH",
+      title: "Immutable Financial Truth Conclusion",
+      status: finalFacts.status,
+      facts: finalFacts,
+      why: finalFacts.text_report || "Final reconstructed truth with tamper-evident audit trail.",
+      groundingIds: finalGroundingIds,
+      parentIds: finalParentIds
+    }
+  ];
+
+  return {
+    caseId: caseId,
+    createdAt: new Date().toISOString(),
+    stages: stages
+  };
+}
+
+/**
+ * Initiates the Financial Truth Replay session with an immutable state snapshot.
+ */
+function startTruthReplay() {
+  if (!currentCaseResult) {
+    showAlert("Please select or process a financial case before starting Truth Replay.", "warning");
+    return;
+  }
+
+  replayPreviousFocus = document.activeElement;
+  truthReplaySnapshot = buildTruthReplaySnapshot(currentCaseResult, currentControllerBrief, currentReviewRecord);
+  currentReplayStep = 0;
+
+  const overlay = document.getElementById("replay-modal-overlay");
+  if (overlay) {
+    overlay.style.display = "flex";
+    overlay.classList.add("active");
+    renderReplayStep(0);
+    const closeBtn = document.getElementById("replay-btn-close");
+    if (closeBtn && typeof closeBtn.focus === "function") {
+      closeBtn.focus();
+    }
+  }
+}
+
+/**
+ * Closes the Financial Truth Replay session and cleans up snapshot state.
+ */
+function closeTruthReplay() {
+  truthReplaySnapshot = null;
+  currentReplayStep = 0;
+
+  const overlay = document.getElementById("replay-modal-overlay");
+  if (overlay) {
+    overlay.style.display = "none";
+    overlay.classList.remove("active");
+  }
+
+  if (replayPreviousFocus && typeof replayPreviousFocus.focus === "function" && document.body.contains(replayPreviousFocus)) {
+    replayPreviousFocus.focus();
+  } else {
+    const launchBtn = document.getElementById("btn-launch-replay");
+    if (launchBtn && typeof launchBtn.focus === "function") {
+      launchBtn.focus();
+    }
+  }
+  replayPreviousFocus = null;
+}
+
+/**
+ * Renders an active stage in the Financial Truth Replay modal.
+ */
+function renderReplayStep(stepIndex) {
+  if (!truthReplaySnapshot || !Array.isArray(truthReplaySnapshot.stages)) return;
+
+  const totalStages = truthReplaySnapshot.stages.length;
+  if (stepIndex < 0 || stepIndex >= totalStages) return;
+
+  currentReplayStep = stepIndex;
+  const stage = truthReplaySnapshot.stages[stepIndex];
+  if (!stage) return;
+
+  // 1. Step Counter & Headers
+  const stepNumEl = document.getElementById("replay-stage-step-num");
+  const titleEl = document.getElementById("replay-stage-title");
+  const badgeEl = document.getElementById("replay-stage-badge");
+  const liveAnnouncer = document.getElementById("replay-live-announcer");
+
+  if (stepNumEl) stepNumEl.textContent = `STAGE ${stepIndex + 1} OF ${totalStages}`;
+  if (titleEl) titleEl.textContent = stage.title;
+  if (badgeEl) {
+    badgeEl.textContent = stage.status;
+    const stLower = (stage.status || "").toLowerCase();
+    if (stLower.includes("contradict") || stLower.includes("error") || stLower.includes("alert")) {
+      badgeEl.className = "badge badge-contradicted";
+    } else if (stLower.includes("verify") || stLower.includes("confirm") || stLower.includes("match") || stLower.includes("extract")) {
+      badgeEl.className = "badge badge-confirmed";
+    } else if (stLower.includes("pending") || stLower.includes("unassign") || stLower.includes("review")) {
+      badgeEl.className = "badge badge-ambiguous";
+    } else {
+      badgeEl.className = "badge badge-low";
+    }
+  }
+
+  if (liveAnnouncer) {
+    liveAnnouncer.textContent = `Replay stage ${stepIndex + 1} of ${totalStages}: ${stage.title}`;
+  }
+
+  // 2. Stepper Rail Pills
+  renderReplayStepperRail();
+
+  // 3. Causality Lineage
+  const causalityContainer = document.getElementById("replay-causality-container");
+  if (causalityContainer) {
+    if (stage.parentIds && stage.parentIds.length > 0) {
+      const parentBadges = stage.parentIds.map((pid) => `<span class="replay-causality-node">${escapeReplayHtml(pid)}</span>`).join(" ");
+      causalityContainer.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--on-surface-variant);">PARENT LINEAGE:</span>
+          ${parentBadges}
+          <span class="replay-causality-arrow material-symbols-outlined" style="font-size: 1rem;">arrow_forward</span>
+          <span class="replay-causality-node" style="color: var(--primary); font-weight: 800;">${escapeReplayHtml(stage.key)}</span>
+        </div>
+      `;
+    } else if (stepIndex === 0) {
+      causalityContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--on-surface-variant);">
+          <strong style="color: var(--primary);">ROOT EVIDENCE INGESTION</strong> — Independent entry point (No parent dependencies).
+        </div>
+      `;
+    } else if (stage.key === "TRANSACTION") {
+      causalityContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--on-surface-variant);">
+          <strong style="color: var(--secondary);">INDEPENDENT LEDGER SOURCE</strong> — Authoritative bank statement transactions (No parent dependencies).
+        </div>
+      `;
+    } else if (stage.key === "HUMAN_DECISION") {
+      causalityContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--on-surface-variant);">
+          <strong style="color: var(--secondary);">INDEPENDENT HUMAN REVIEW</strong> — Human reviewer judgment and audit record.
+        </div>
+      `;
+    } else if (stage.key === "CONFLICT_CHECK" && (!stage.facts || stage.facts.length === 0)) {
+      causalityContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--success); font-weight: 600;">
+          ✓ INVARIANT CHECK PASSED — Zero conflicting parent evidence artifacts.
+        </div>
+      `;
+    } else {
+      causalityContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--on-surface-variant);">
+          <em>Relationship not explicitly recorded in provenance graph.</em>
+        </div>
+      `;
+    }
+  }
+
+  // 4. Grounding Chips
+  const groundingContainer = document.getElementById("replay-grounding-chips");
+  if (groundingContainer) {
+    if (stage.groundingIds && stage.groundingIds.length > 0) {
+      groundingContainer.innerHTML = stage.groundingIds.map((gid) => `
+        <span class="replay-chip verified">
+          <span class="material-symbols-outlined" style="font-size: 0.85rem;">verified</span>
+          <span>${gid}</span>
+        </span>
+      `).join("");
+    } else {
+      groundingContainer.innerHTML = '<span class="replay-chip">No direct artifact grounding IDs</span>';
+    }
+  }
+
+  // 5. Stage Specific Body
+  const bodyEl = document.getElementById("replay-stage-body");
+  if (bodyEl) {
+    bodyEl.innerHTML = renderStageSpecificHTML(stage);
+  }
+
+  // 6. Navigation Button States
+  const prevBtn = document.getElementById("replay-btn-prev");
+  const nextBtn = document.getElementById("replay-btn-next");
+  if (prevBtn) {
+    prevBtn.disabled = (currentReplayStep === 0);
+    prevBtn.setAttribute("aria-label", "Navigate to previous stage");
+  }
+  if (nextBtn) {
+    nextBtn.disabled = (currentReplayStep === totalStages - 1);
+    nextBtn.setAttribute("aria-label", "Navigate to next stage");
+  }
+}
+
+/**
+ * Updates the 9-stage stepper rail pills.
+ */
+function renderReplayStepperRail() {
+  const rail = document.getElementById("replay-stepper-rail");
+  if (!rail || !truthReplaySnapshot) return;
+
+  const shortLabels = ["SOURCE", "CLAIM", "TXN", "MATCH", "CONFLICT", "RECON", "CTRL", "REVIEW", "TRUTH"];
+
+  rail.innerHTML = truthReplaySnapshot.stages.map((stg, idx) => {
+    let stateClass = "upcoming";
+    const stgStatus = (stg.status || "").toLowerCase();
+    if (idx === currentReplayStep) {
+      stateClass = "active";
+    } else if (idx < currentReplayStep) {
+      stateClass = stgStatus.includes("contradict") ? "contradicted" : "completed";
+    } else if (stgStatus.includes("contradict")) {
+      stateClass = "contradicted";
+    }
+
+    const label = shortLabels[idx] || stg.key;
+    const ariaCurrentAttr = (idx === currentReplayStep) ? 'aria-current="step"' : '';
+
+    return `
+      <button type="button" class="replay-step-pill ${stateClass}" data-step-idx="${idx}" aria-label="Replay stage ${idx + 1}: ${stg.title}" ${ariaCurrentAttr}>
+        <span class="step-num">${idx + 1}</span>
+        <span class="step-label">${label}</span>
+      </button>
+    `;
+  }).join("");
+
+  rail.querySelectorAll(".replay-step-pill").forEach((pill) => {
+    pill.addEventListener("click", () => {
+      const sIdx = Number(pill.dataset.stepIdx);
+      if (!isNaN(sIdx)) {
+        renderReplayStep(sIdx);
+      }
+    });
+  });
+}
+
+/**
+ * Generates distinct, deterministic HTML representation for each of the 9 replay stages.
+ */
+function renderStageSpecificHTML(stage) {
+  const whyCardHTML = `
+    <div class="replay-card" style="border-left: 4px solid var(--primary); margin-top: 0.75rem;">
+      <div class="replay-card-title">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem;">psychology</span>
+        <span>Deterministic Rationale (WHY)</span>
+      </div>
+      <div class="replay-card-body" style="font-size: 0.85rem; color: var(--on-surface-variant);">
+        ${stage.why}
+      </div>
+    </div>
+  `;
+
+  let factsCardHTML = "";
+
+  switch (stage.key) {
+    case "SOURCE": {
+      const items = Array.isArray(stage.facts) ? stage.facts : [];
+      const rows = items.map((ev) => `
+        <tr style="border-bottom: 1px solid var(--outline-variant); font-size: 0.8125rem;">
+          <td style="padding: 0.5rem; font-family: var(--font-mono); font-weight: 700; color: var(--primary);">${ev.evidence_id}</td>
+          <td style="padding: 0.5rem;"><span class="badge badge-low">${ev.modality}</span></td>
+          <td style="padding: 0.5rem; color: var(--on-surface);">${ev.source_name}</td>
+          <td style="padding: 0.5rem; font-family: var(--font-mono); font-size: 0.72rem; color: var(--on-surface-variant); word-break: break-all;">${ev.sha256_hash}</td>
+        </tr>
+      `).join("");
+
+      factsCardHTML = `
+        <div class="replay-card">
+          <div class="replay-card-title">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">folder_open</span>
+            <span>Ingested Source Artifacts (${items.length})</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr style="color: var(--on-surface-variant); font-size: 0.72rem; border-bottom: 1px solid var(--outline-variant); text-transform: uppercase;">
+                  <th style="padding: 0.4rem 0.5rem;">Evidence ID</th>
+                  <th style="padding: 0.4rem 0.5rem;">Modality</th>
+                  <th style="padding: 0.4rem 0.5rem;">Source Name</th>
+                  <th style="padding: 0.4rem 0.5rem;">SHA-256 Hash</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows || '<tr><td colspan="4" style="padding: 0.5rem; color: var(--on-surface-variant);">No evidence artifacts found.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      break;
+    }
+
+    case "CLAIM": {
+      const claims = Array.isArray(stage.facts) ? stage.facts : [];
+      const rows = claims.map((c) => `
+        <tr style="border-bottom: 1px solid var(--outline-variant); font-size: 0.8125rem;">
+          <td style="padding: 0.5rem; font-family: var(--font-mono); font-weight: 700; color: var(--primary);">${c.claim_id}</td>
+          <td style="padding: 0.5rem; font-family: var(--font-mono); color: var(--secondary);">${c.evidence_id || "—"}</td>
+          <td style="padding: 0.5rem;">${c.claim_type}</td>
+          <td style="padding: 0.5rem; font-weight: 700; font-family: var(--font-mono); color: var(--success);">${c.claimed_amount != null ? `₹${c.claimed_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : "—"}</td>
+          <td style="padding: 0.5rem; font-family: var(--font-mono); font-size: 0.75rem;">${c.reference_id_hint || "—"}</td>
+        </tr>
+      `).join("");
+
+      factsCardHTML = `
+        <div class="replay-card">
+          <div class="replay-card-title">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">receipt_long</span>
+            <span>Extracted Financial Claims (${claims.length})</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr style="color: var(--on-surface-variant); font-size: 0.72rem; border-bottom: 1px solid var(--outline-variant); text-transform: uppercase;">
+                  <th style="padding: 0.4rem 0.5rem;">Claim ID</th>
+                  <th style="padding: 0.4rem 0.5rem;">Root Evidence</th>
+                  <th style="padding: 0.4rem 0.5rem;">Claim Type</th>
+                  <th style="padding: 0.4rem 0.5rem;">Claimed Amount</th>
+                  <th style="padding: 0.4rem 0.5rem;">Reference Hint</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows || '<tr><td colspan="5" style="padding: 0.5rem; color: var(--on-surface-variant);">No claims extracted.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      break;
+    }
+
+    case "TRANSACTION": {
+      const txns = Array.isArray(stage.facts) ? stage.facts : [];
+      const rows = txns.map((t) => `
+        <tr style="border-bottom: 1px solid var(--outline-variant); font-size: 0.8125rem;">
+          <td style="padding: 0.5rem; font-family: var(--font-mono); font-weight: 700; color: var(--primary);">${t.transaction_id}</td>
+          <td style="padding: 0.5rem; font-weight: 700; font-family: var(--font-mono); color: ${t.direction === 'CREDIT' ? 'var(--success)' : 'var(--warning)'};">${t.direction === 'CREDIT' ? '+' : '-'} ₹${t.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
+          <td style="padding: 0.5rem;"><span class="badge badge-${t.direction === 'CREDIT' ? 'confirmed' : 'unverifiable'}">${t.direction}</span></td>
+          <td style="padding: 0.5rem; font-family: var(--font-mono); font-size: 0.75rem;">${t.bank_reference || "—"}</td>
+          <td style="padding: 0.5rem; font-size: 0.75rem; color: var(--on-surface-variant);">${t.timestamp || "—"}</td>
+        </tr>
+      `).join("");
+
+      factsCardHTML = `
+        <div class="replay-card">
+          <div class="replay-card-title">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">account_balance</span>
+            <span>Bank Ledger Transactions (${txns.length})</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr style="color: var(--on-surface-variant); font-size: 0.72rem; border-bottom: 1px solid var(--outline-variant); text-transform: uppercase;">
+                  <th style="padding: 0.4rem 0.5rem;">Txn ID</th>
+                  <th style="padding: 0.4rem 0.5rem;">Amount (INR)</th>
+                  <th style="padding: 0.4rem 0.5rem;">Direction</th>
+                  <th style="padding: 0.4rem 0.5rem;">Bank Reference</th>
+                  <th style="padding: 0.4rem 0.5rem;">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows || '<tr><td colspan="5" style="padding: 0.5rem; color: var(--on-surface-variant);">No ledger transactions recorded.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      break;
+    }
+
+    case "MATCH": {
+      const match = stage.facts || {};
+      const signals = Array.isArray(match.matched_signals) ? match.matched_signals : [];
+      factsCardHTML = `
+        <div class="replay-card">
+          <div class="replay-card-title">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">join_inner</span>
+            <span>Match Topology & Signals</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Topology</span>
+              <div style="font-weight: 700; color: var(--on-surface); font-family: var(--font-mono);">${match.topology || "ONE_TO_ONE"}</div>
+            </div>
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Match Status</span>
+              <div style="font-weight: 700; color: var(--success); font-family: var(--font-mono);">${match.status || "MATCHED"}</div>
+            </div>
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Match Score</span>
+              <div style="font-weight: 700; color: var(--primary); font-family: var(--font-mono);">${match.score != null ? `${Math.round(match.score * 100)}%` : "100%"}</div>
+            </div>
+          </div>
+          <div>
+            <span class="font-label-caps" style="font-size: 0.7rem; color: var(--on-surface-variant); margin-bottom: 0.25rem; display: block;">Correlated Match Signals</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+              ${signals.length > 0 ? signals.map(s => `<span class="replay-chip verified">${s}</span>`).join("") : '<span class="replay-chip">Standard Amount Match</span>'}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+    }
+
+    case "CONFLICT_CHECK": {
+      const conflicts = Array.isArray(stage.facts) ? stage.facts : [];
+      if (conflicts.length === 0) {
+        factsCardHTML = `
+          <div class="replay-card" style="border-left: 4px solid var(--success);">
+            <div class="replay-card-title" style="color: var(--success);">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">check_circle</span>
+              <span>Contradiction Detection Invariants</span>
+            </div>
+            <div class="replay-card-body" style="color: var(--on-surface);">
+              No contradiction recorded for this case. Invariant checks passed with zero monetary or identity conflicts.
+            </div>
+          </div>
+        `;
+      } else {
+        const rows = conflicts.map((c) => `
+          <div style="background: var(--surface-container-high); border: 1px solid rgba(239,68,68,0.3); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <span style="font-family: var(--font-mono); font-weight: 700; color: var(--error); font-size: 0.8125rem;">${c.discrepancy_id} (${c.discrepancy_type})</span>
+              <span class="badge badge-contradicted">${c.severity}</span>
+            </div>
+            <p style="font-size: 0.85rem; margin: 0 0 0.4rem 0; color: var(--on-surface);">${c.message}</p>
+            <div style="display: flex; gap: 1rem; font-size: 0.78rem; font-family: var(--font-mono);">
+              <span style="color: var(--on-surface-variant);">Expected: <strong style="color: var(--on-surface);">${c.expected_value || "—"}</strong></span>
+              <span style="color: var(--on-surface-variant);">Observed: <strong style="color: var(--error);">${c.observed_value || "—"}</strong></span>
+            </div>
+          </div>
+        `).join("");
+
+        factsCardHTML = `
+          <div class="replay-card" style="border-left: 4px solid var(--error);">
+            <div class="replay-card-title" style="color: var(--error);">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">warning</span>
+              <span>Discrepancies & Contradictions Detected (${conflicts.length})</span>
+            </div>
+            <div>${rows}</div>
+          </div>
+        `;
+      }
+      break;
+    }
+
+    case "RECONCILIATION": {
+      const recon = stage.facts || {};
+      const reasonCodes = Array.isArray(recon.reason_codes) ? recon.reason_codes : [];
+      factsCardHTML = `
+        <div class="replay-card">
+          <div class="replay-card-title">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">balance</span>
+            <span>Double-Entry Reconciliation Ledger</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Expected</span>
+              <div class="financial-anchor" style="color: var(--on-surface);">₹${(recon.expected_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</div>
+            </div>
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Matched</span>
+              <div class="financial-anchor" style="color: var(--success);">₹${(recon.matched_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</div>
+            </div>
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Outstanding</span>
+              <div class="financial-anchor" style="color: ${(recon.outstanding_amount || 0) > 0 ? 'var(--warning)' : 'var(--on-surface-variant)'};">₹${(recon.outstanding_amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</div>
+            </div>
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Confidence</span>
+              <div style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">${Math.round((recon.confidence_score || 1.0) * 100)}%</div>
+            </div>
+          </div>
+          <div>
+            <span class="font-label-caps" style="font-size: 0.7rem; color: var(--on-surface-variant); margin-bottom: 0.25rem; display: block;">Applied Rule Reason Codes</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+              ${reasonCodes.length > 0 ? reasonCodes.map(r => `<span class="replay-chip">${r}</span>`).join("") : '<span class="replay-chip">STANDARD_CLEAN_RECONCILIATION</span>'}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+    }
+
+    case "CONTROLLER": {
+      const ctrl = stage.facts || {};
+      const directives = Array.isArray(ctrl.action_directives) ? ctrl.action_directives : [];
+      factsCardHTML = `
+        <div class="replay-card" style="border-left: 4px solid var(--status-risk-violet);">
+          <div class="replay-card-title" style="color: var(--status-risk-violet);">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">policy</span>
+            <span>Controller Policy & Action Directives</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap;">
+            <span class="badge badge-risk-violet">RISK: ${ctrl.risk_rating || 'NONE'}</span>
+            <span class="badge badge-confirmed">RECOMMENDED: ${ctrl.recommended_decision || 'CONFIRM_RECONCILIATION'}</span>
+            <span class="badge ${ctrl.human_review_required ? 'badge-ambiguous' : 'badge-confirmed'}">${ctrl.human_review_required ? '⚠️ HUMAN REVIEW REQUIRED' : '✓ NO REVIEW REQUIRED'}</span>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--on-surface); margin-bottom: 0.6rem;">
+            ${ctrl.executive_summary || "Controller policy directives evaluated."}
+          </div>
+          ${directives.length > 0 ? `
+            <div>
+              <span class="font-label-caps" style="font-size: 0.7rem; color: var(--on-surface-variant); margin-bottom: 0.25rem; display: block;">Directives</span>
+              <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.8125rem; color: var(--on-surface);">
+                ${directives.map(d => `<li>${d}</li>`).join("")}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      break;
+    }
+
+    case "HUMAN_DECISION": {
+      const hum = stage.facts || {};
+      const notes = Array.isArray(hum.notes) ? hum.notes : [];
+      factsCardHTML = `
+        <div class="replay-card">
+          <div class="replay-card-title">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">person_check</span>
+            <span>Human Reviewer Audit Record</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Review ID</span>
+              <div style="font-family: var(--font-mono); font-weight: 700; color: var(--on-surface); font-size: 0.8125rem;">${hum.review_id || "UNASSIGNED"}</div>
+            </div>
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Reviewer</span>
+              <div style="font-weight: 700; color: var(--on-surface); font-size: 0.8125rem;">${hum.reviewer_name || "Unassigned"}</div>
+            </div>
+            <div style="background: var(--surface-container-high); padding: 0.6rem; border-radius: var(--radius-sm);">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Decision Status</span>
+              <div style="font-weight: 700; color: ${hum.decision !== 'NONE' ? 'var(--success)' : 'var(--warning)'}; font-size: 0.8125rem;">${hum.decision || "PENDING"}</div>
+            </div>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--on-surface);">
+            ${hum.rationale ? `<p style="margin: 0 0 0.4rem 0;"><strong>Rationale:</strong> ${hum.rationale}</p>` : '<p style="margin: 0; color: var(--on-surface-variant);"><em>Human review is pending or no override was submitted.</em></p>'}
+          </div>
+          ${notes.length > 0 ? `
+            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--outline-variant);">
+              <span class="font-label-caps" style="font-size: 0.7rem; color: var(--on-surface-variant); margin-bottom: 0.25rem; display: block;">Reviewer Notes</span>
+              <div style="font-size: 0.8125rem; color: var(--on-surface);">${notes.join("<br>")}</div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      break;
+    }
+
+    case "FINAL_TRUTH": {
+      const fin = stage.facts || {};
+      factsCardHTML = `
+        <div class="replay-card" style="border-left: 5px solid ${fin.status === 'CONFIRMED' ? 'var(--success)' : (fin.status.includes('CONTRADICT') ? 'var(--error)' : 'var(--warning)')};">
+          <div class="replay-card-title" style="color: ${fin.status === 'CONFIRMED' ? 'var(--success)' : (fin.status.includes('CONTRADICT') ? 'var(--error)' : 'var(--warning)')};">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">verified_user</span>
+            <span>Final Reconstructed Truth (${fin.case_id})</span>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap;">
+            <span class="status-badge-lg badge-${fin.status.toLowerCase()}">${fin.status}</span>
+            <span class="badge badge-low" style="font-family: var(--font-mono);">CONFIDENCE: ${Math.round(fin.confidence * 100)}%</span>
+            <span class="badge badge-low" style="font-family: var(--font-mono);">DAG PROVENANCE: ${fin.provenance_hash}</span>
+          </div>
+          <div class="replay-card-body" style="font-size: 0.875rem; color: var(--on-surface);">
+            ${fin.text_report}
+          </div>
+        </div>
+      `;
+      break;
+    }
+  }
+
+  return factsCardHTML + whyCardHTML;
+}
+
+/**
+ * Navigates to next step in Truth Replay.
+ */
+function nextReplayStep() {
+  if (!truthReplaySnapshot) return;
+  if (currentReplayStep < truthReplaySnapshot.stages.length - 1) {
+    renderReplayStep(currentReplayStep + 1);
+  }
+}
+
+/**
+ * Navigates to previous step in Truth Replay.
+ */
+function previousReplayStep() {
+  if (!truthReplaySnapshot) return;
+  if (currentReplayStep > 0) {
+    renderReplayStep(currentReplayStep - 1);
   }
 }
