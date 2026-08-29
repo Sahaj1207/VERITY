@@ -4420,15 +4420,16 @@ function buildTruthReplaySnapshot(caseResult, controllerBrief, reviewRecord) {
 
   // Stage 9: FINAL_TRUTH
   const finalStatus = String(rawCase.status || "UNVERIFIED").toUpperCase();
-  const finalConfidence = rawCase.confidence != null ? Number(rawCase.confidence) : 1.0;
+  const finalConfidence = rawCase.confidence != null ? Number(rawCase.confidence) : null;
+  const provHash = provRefs.root_hash || provRefs.provenance_hash || provRefs.dag_hash || provRefs.hash || null;
   const finalFacts = {
     case_id: caseId,
     status: finalStatus,
     confidence: finalConfidence,
     requires_review: Boolean(rawCase.requires_review),
-    total_execution_time_ms: rawCase.total_execution_time_ms != null ? Number(rawCase.total_execution_time_ms) : 0,
+    total_execution_time_ms: rawCase.total_execution_time_ms != null ? Number(rawCase.total_execution_time_ms) : null,
     text_report: rawCase.text_report || truthReport.summary || "",
-    provenance_hash: provRefs.algorithm || "SHA-256"
+    provenance_hash: provHash
   };
   const finalGroundingIds = [caseId];
   const finalParentIds = Array.from(new Set([
@@ -5057,23 +5058,92 @@ function renderStageSpecificHTML(stage) {
 
     case "FINAL_TRUTH": {
       const fin = stage.facts || {};
+      const statusRaw = String(fin.status || "UNVERIFIED");
+      const statusLower = statusRaw.toLowerCase();
+      let statusClass = "unverified";
+      let statusIcon = "help_outline";
+      let statusColor = "var(--on-surface-variant)";
+
+      if (statusRaw === "CONFIRMED" || statusLower === "confirmed") {
+        statusClass = "confirmed";
+        statusIcon = "verified_user";
+        statusColor = "var(--success)";
+      } else if (statusLower.includes("contradict") || statusLower.includes("fraud") || statusLower.includes("error")) {
+        statusClass = "contradicted";
+        statusIcon = "gpp_bad";
+        statusColor = "var(--error)";
+      } else if (statusLower.includes("ambiguous") || statusLower.includes("review") || statusLower.includes("unresolved") || statusLower.includes("pending")) {
+        statusClass = "ambiguous";
+        statusIcon = "warning";
+        statusColor = "var(--warning)";
+      }
+
+      const confText = fin.confidence != null
+        ? `${Math.round(fin.confidence * 100)}% CONFIDENCE`
+        : "CONFIDENCE: NOT RECORDED";
+
+      const executionTime = fin.total_execution_time_ms != null ? `${fin.total_execution_time_ms}ms` : null;
+      const provText = fin.provenance_hash
+        ? `PROVENANCE: ${escapeReplayHtml(fin.provenance_hash)}`
+        : "PROVENANCE: NOT RECORDED";
+
       factsCardHTML = `
-        <div class="replay-card" style="border-left: 5px solid ${fin.status === 'CONFIRMED' ? 'var(--success)' : (fin.status.includes('CONTRADICT') ? 'var(--error)' : 'var(--warning)')};">
-          <div class="replay-card-title" style="color: ${fin.status === 'CONFIRMED' ? 'var(--success)' : (fin.status.includes('CONTRADICT') ? 'var(--error)' : 'var(--warning)')};">
-            <span class="material-symbols-outlined" style="font-size: 1.1rem;">verified_user</span>
-            <span>Final Reconstructed Truth (${fin.case_id})</span>
+        <div class="replay-verdict-card ${statusClass}">
+          <!-- Verdict Hero Header -->
+          <div class="replay-verdict-hero">
+            <div class="replay-verdict-badge-wrap">
+              <span class="material-symbols-outlined" style="font-size: 1.6rem; color: ${statusColor};">${statusIcon}</span>
+              <span class="replay-verdict-text" style="color: ${statusColor};">${escapeReplayHtml(statusRaw)}</span>
+              <span class="badge badge-low" style="font-family: var(--font-mono); font-weight: 700; font-size: 0.8125rem;">
+                ${confText}
+              </span>
+              <span class="badge ${fin.requires_review ? 'badge-ambiguous' : 'badge-confirmed'}" style="font-size: 0.75rem;">
+                ${fin.requires_review ? '⚠️ REVIEW REQUIRED' : '✓ DIRECT CONCLUSION'}
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="badge badge-low" style="font-family: var(--font-mono); font-size: 0.75rem;">
+                CASE: ${escapeReplayHtml(fin.case_id)}
+              </span>
+              ${executionTime ? `<span class="badge badge-low" style="font-family: var(--font-mono); font-size: 0.72rem;">⏱️ ${executionTime}</span>` : ''}
+            </div>
           </div>
-          <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap;">
-            <span class="status-badge-lg badge-${fin.status.toLowerCase()}">${fin.status}</span>
-            <span class="badge badge-low" style="font-family: var(--font-mono);">CONFIDENCE: ${Math.round(fin.confidence * 100)}%</span>
-            <span class="badge badge-low" style="font-family: var(--font-mono);">DAG PROVENANCE: ${fin.provenance_hash}</span>
+
+          <!-- Two-Column Forensic Scan Grid -->
+          <div class="replay-two-col-grid">
+            <!-- Col 1: What Happened? -->
+            <div style="background: var(--surface-container-low); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--outline-variant);">
+              <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.8125rem; color: var(--on-surface); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--primary);">fact_check</span>
+                <span>Forensic Finding (What Happened?)</span>
+              </div>
+              <div style="font-size: 0.85rem; line-height: 1.6; color: var(--on-surface); word-break: break-word; white-space: pre-line;">
+                ${escapeReplayHtml(fin.text_report || "Deterministic multi-modal financial truth reconstructed from source evidence and verified ledger transactions.")}
+              </div>
+            </div>
+
+            <!-- Col 2: Deterministic Rationale (Why?) -->
+            <div style="background: var(--surface-container-low); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--outline-variant);">
+              <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.8125rem; color: var(--on-surface); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--primary);">psychology</span>
+                <span>Deterministic Invariant Rationale (Why?)</span>
+              </div>
+              <div style="font-size: 0.85rem; line-height: 1.6; color: var(--on-surface-variant); word-break: break-word;">
+                ${escapeReplayHtml(stage.why || "Deterministic multi-modal financial truth reconstructed and sealed in immutable audit store.")}
+              </div>
+            </div>
           </div>
-          <div class="replay-card-body" style="font-size: 0.875rem; color: var(--on-surface);">
-            ${fin.text_report}
+
+          <!-- Proof & Provenance Audit Footprint -->
+          <div class="replay-proof-strip">
+            <span style="font-size: 0.7rem; font-weight: 700; color: var(--on-surface-variant); text-transform: uppercase;">Audit Trail & Proof:</span>
+            <span class="replay-causality-node">${provText}</span>
+            ${fin.reconciliation_id ? `<span class="replay-causality-node">RECON ID: ${escapeReplayHtml(fin.reconciliation_id)}</span>` : ''}
+            ${fin.review_id ? `<span class="replay-causality-node">REVIEW ID: ${escapeReplayHtml(fin.review_id)}</span>` : '<span class="replay-causality-node">REVIEW: Self-Contained (Zero Override)</span>'}
           </div>
         </div>
       `;
-      break;
+      return factsCardHTML;
     }
   }
 

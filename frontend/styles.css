@@ -2664,7 +2664,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #replay-container {
   width: 100%;
   max-width: 960px;
-  max-height: 90vh;
+  max-height: 92vh;
   background: var(--surface-container-lowest);
   border: 1px solid var(--outline-variant);
   border-radius: var(--radius-xl, 16px);
@@ -2927,6 +2927,79 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   outline: 2px solid var(--border-focus);
 }
 
+/* Stage 9 Final Truth Verdict Card & Forensic Layout */
+.replay-verdict-card {
+  background: var(--surface-container-high);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.replay-verdict-card.confirmed {
+  border-left: 6px solid var(--success);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--surface-container-high) 60%);
+}
+
+.replay-verdict-card.contradicted {
+  border-left: 6px solid var(--error);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, var(--surface-container-high) 60%);
+}
+
+.replay-verdict-card.ambiguous {
+  border-left: 6px solid var(--warning);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, var(--surface-container-high) 60%);
+}
+
+.replay-verdict-card.unverified {
+  border-left: 6px solid var(--outline-variant);
+  background: var(--surface-container-high);
+}
+
+.replay-verdict-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.replay-verdict-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.replay-verdict-text {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.replay-two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.replay-proof-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 768px) {
   #replay-modal-overlay {
@@ -2960,5 +3033,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   #replay-causality-container {
     padding: 0.5rem 0.75rem;
     font-size: 0.72rem;
+  }
+
+  .replay-two-col-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .replay-verdict-text {
+    font-size: 1.15rem;
   }
 }
