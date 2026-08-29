@@ -2615,3 +2615,391 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   FINANCIAL TRUTH REPLAY - OVERLAY STYLES
+   ========================================================================== */
+
+/* Full-screen backdrop isolation */
+.truth-replay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 20, 25, 0.95); /* Deep dark forensic backdrop */
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+}
+
+/* Main Modal Container */
+.truth-replay-container {
+  width: 100%;
+  height: 100%;
+  max-width: 1600px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  /* Switch to dark theme tokens essentially for the modal */
+  --tr-bg: #11141a;
+  --tr-surface: #1a1f29;
+  --tr-surface-raised: #222936;
+  --tr-text: #f0f3ff;
+  --tr-text-muted: #a3abc0;
+  --tr-primary: #8fb1ff;
+  --tr-border: #2d3546;
+  --tr-highlight: rgba(143, 177, 255, 0.15);
+  --tr-highlight-border: rgba(143, 177, 255, 0.4);
+  background: var(--tr-bg);
+  color: var(--tr-text);
+  overflow: hidden;
+}
+
+/* Header */
+.truth-replay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--tr-border);
+  background: var(--tr-surface);
+}
+
+.truth-replay-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.truth-replay-icon {
+  font-size: 1.75rem;
+  color: var(--tr-primary);
+}
+
+.truth-replay-header h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--tr-text);
+  letter-spacing: 0.5px;
+}
+
+.truth-replay-case-id {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--tr-text-muted);
+}
+
+.truth-replay-btn-exit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--tr-text-muted);
+  border: 1px solid var(--tr-border);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.truth-replay-btn-exit:hover,
+.truth-replay-btn-exit:focus-visible {
+  color: var(--tr-text);
+  border-color: var(--tr-text-muted);
+  background: var(--tr-surface-raised);
+}
+
+/* Main Layout */
+.truth-replay-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+/* Pipeline Wrapper */
+.truth-replay-pipeline-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.truth-replay-pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  position: relative;
+}
+
+/* Individual Stage Node */
+.truth-replay-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 2;
+  transition: all 0.3s ease;
+  width: 120px;
+}
+
+.truth-replay-stage-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--tr-surface-raised);
+  border: 2px solid var(--tr-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tr-text-muted);
+  transition: all 0.3s ease;
+}
+
+.truth-replay-stage-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tr-text-muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+/* Connection Lines (Arrows) */
+.truth-replay-connector {
+  flex: 1;
+  height: 2px;
+  background: var(--tr-border);
+  position: relative;
+  z-index: 1;
+  margin: 0 -40px;
+  top: -15px;
+  transition: all 0.3s ease;
+}
+
+/* Connector Text (IDs) */
+.truth-replay-connector-text {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--tr-text-muted);
+  white-space: nowrap;
+  background: var(--tr-bg);
+  padding: 0 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* States */
+.truth-replay-stage.past .truth-replay-stage-dot {
+  background: var(--tr-surface);
+  border-color: var(--tr-text-muted);
+  color: var(--tr-text-muted);
+}
+.truth-replay-stage.past .truth-replay-stage-label {
+  color: var(--tr-text-muted);
+}
+
+.truth-replay-stage.active .truth-replay-stage-dot {
+  background: var(--tr-highlight);
+  border-color: var(--tr-primary);
+  color: var(--tr-primary);
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(143, 177, 255, 0.2);
+}
+.truth-replay-stage.active .truth-replay-stage-label {
+  color: var(--tr-primary);
+}
+
+.truth-replay-stage.future .truth-replay-stage-dot {
+  opacity: 0.3;
+}
+.truth-replay-stage.future .truth-replay-stage-label {
+  opacity: 0.3;
+}
+
+/* Active Connection */
+.truth-replay-connector.active {
+  background: var(--tr-primary);
+  box-shadow: 0 0 8px rgba(143, 177, 255, 0.3);
+}
+
+.truth-replay-connector.active::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: -4px;
+  border: solid var(--tr-primary);
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 4px;
+  transform: rotate(-45deg);
+}
+
+.truth-replay-connector.active .truth-replay-connector-text {
+  opacity: 1;
+  color: var(--tr-primary);
+}
+
+/* Detail Panel */
+.truth-replay-detail-panel {
+  background: var(--tr-surface);
+  border: 1px solid var(--tr-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.truth-replay-detail-header {
+  border-bottom: 1px solid var(--tr-border);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.truth-replay-detail-header h3 {
+  color: var(--tr-primary);
+  font-size: 1.25rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.truth-replay-detail-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.truth-replay-detail-section h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--tr-text-muted);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 0.5px;
+}
+
+.truth-replay-detail-section p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--tr-text);
+}
+
+/* Code-like formatting for proof/financials */
+.truth-replay-detail-section p code {
+  font-family: var(--font-mono);
+  background: var(--tr-surface-raised);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  color: #a8c7fa;
+}
+
+/* Footer */
+.truth-replay-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-top: 1px solid var(--tr-border);
+  background: var(--tr-surface);
+}
+
+.truth-replay-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--tr-surface-raised);
+  color: var(--tr-text);
+  border: 1px solid var(--tr-border);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.truth-replay-nav-btn:hover:not(:disabled),
+.truth-replay-nav-btn:focus-visible {
+  background: var(--tr-highlight);
+  border-color: var(--tr-highlight-border);
+  color: var(--tr-primary);
+}
+
+.truth-replay-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.truth-replay-progress {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--tr-text-muted);
+  letter-spacing: 1px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .truth-replay-main {
+    padding: 1rem;
+    overflow-y: auto;
+    display: block;
+  }
+
+  .truth-replay-pipeline-wrapper {
+    display: block;
+    overflow: visible;
+  }
+
+  .truth-replay-pipeline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .truth-replay-stage {
+    flex-direction: row;
+    width: auto;
+    gap: 1rem;
+  }
+
+  /* Hide all non-active stages on mobile or show them as a vertical timeline */
+  .truth-replay-stage:not(.active) {
+    display: none;
+  }
+
+  .truth-replay-connector {
+    display: none; /* Hide horizontal connectors on mobile */
+  }
+
+  .truth-replay-detail-content {
+    grid-template-columns: 1fr;
+  }
+
+  .truth-replay-header {
+    padding: 1rem;
+  }
+
+  .truth-replay-footer {
+    padding: 1rem;
+  }
+}

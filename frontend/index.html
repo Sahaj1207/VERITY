@@ -724,6 +724,10 @@
               <span class="badge badge-confirmed" id="hero-status-badge">READY</span>
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button class="btn-secondary" id="btn-replay-financial-truth" style="font-size: 0.8125rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">history</span>
+                <span>Replay Financial Truth</span>
+              </button>
               <button class="btn-secondary" id="btn-export-report-top" style="font-size: 0.8125rem;">
                 <span class="material-symbols-outlined" style="font-size: 1rem;">download</span>
                 <span>Export Report</span>
@@ -1997,6 +2001,79 @@
       </div>
     </footer>
 
+  </div>
+
+  <!-- =========================================================================
+       FINANCIAL TRUTH REPLAY OVERLAY
+       ========================================================================= -->
+  <div id="truth-replay-modal" class="truth-replay-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="replay-header-title" tabindex="-1">
+    <div class="truth-replay-container">
+
+      <!-- HEADER -->
+      <header class="truth-replay-header">
+        <div class="truth-replay-header-left">
+          <span class="material-symbols-outlined truth-replay-icon">history</span>
+          <div>
+            <h2 id="replay-header-title">Financial Truth Replay</h2>
+            <span id="replay-case-id" class="truth-replay-case-id">CASE-ID</span>
+          </div>
+        </div>
+        <button id="btn-replay-exit" class="truth-replay-btn-exit" aria-label="Exit Replay">
+          <span class="material-symbols-outlined">close</span>
+          Exit Replay
+        </button>
+      </header>
+
+      <!-- MAIN CANVAS (PIPELINE / DAG) -->
+      <main class="truth-replay-main">
+        <div class="truth-replay-pipeline-wrapper">
+          <!-- Desktop horizontal / Mobile vertical container -->
+          <div id="replay-pipeline" class="truth-replay-pipeline">
+            <!-- Stages injected dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- DETAIL PANEL -->
+        <div class="truth-replay-detail-panel">
+          <div class="truth-replay-detail-header">
+            <h3 id="replay-detail-stage-name">Stage Name</h3>
+          </div>
+          <div class="truth-replay-detail-content">
+            <div class="truth-replay-detail-section">
+              <h4>What Happened?</h4>
+              <p id="replay-detail-what" aria-live="polite">...</p>
+            </div>
+            <div class="truth-replay-detail-section">
+              <h4>Why?</h4>
+              <p id="replay-detail-why" aria-live="polite">...</p>
+            </div>
+            <div class="truth-replay-detail-section">
+              <h4>Proof</h4>
+              <p id="replay-detail-proof" aria-live="polite">...</p>
+            </div>
+            <div class="truth-replay-detail-section" id="replay-detail-effect-container">
+              <h4>Financial Effect</h4>
+              <p id="replay-detail-effect" aria-live="polite">...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- FOOTER -->
+      <footer class="truth-replay-footer">
+        <button id="btn-replay-prev" class="truth-replay-nav-btn">
+          <span class="material-symbols-outlined">arrow_back</span>
+          Previous
+        </button>
+        <div class="truth-replay-progress" id="replay-progress-indicator">
+          Step 1 of 8
+        </div>
+        <button id="btn-replay-next" class="truth-replay-nav-btn">
+          Next
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+      </footer>
+    </div>
   </div>
 
   <!-- Modal: Assign Reviewer -->

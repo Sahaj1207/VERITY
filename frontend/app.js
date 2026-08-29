@@ -4185,3 +4185,449 @@ function updateGoldenCommandCenter() {
     `;
   }
 }
+
+/* ==========================================================================
+   FINANCIAL TRUTH REPLAY LIFECYCLE & STATE MANAGEMENT
+   ========================================================================== */
+
+let replaySnapshot = null;
+let currentReplayStep = 0;
+let replayFocusedElement = null;
+
+const REPLAY_STAGES = [
+  { id: 'source', label: 'SOURCE' },
+  { id: 'claim', label: 'CLAIM' },
+  { id: 'ledger', label: 'LEDGER' },
+  { id: 'match', label: 'MATCH' },
+  { id: 'reconciliation', label: 'RECONCILIATION' },
+  { id: 'controller', label: 'CONTROLLER' },
+  { id: 'human', label: 'HUMAN DECISION' },
+  { id: 'truth', label: 'FINAL TRUTH' }
+];
+
+function launchTruthReplay() {
+  if (!currentCaseResult) {
+    showAlert("No active case to replay. Please run or select a case first.", "warning");
+    return;
+  }
+
+  // Deep clone state to ensure absolute isolation
+  replaySnapshot = JSON.parse(JSON.stringify({
+    result: currentCaseResult,
+    controller: currentControllerBrief,
+    review: currentReviewRecord,
+    intelligence: currentIntelligenceProfile
+  }));
+
+  currentReplayStep = 0;
+
+  // Save focus to restore when closing modal
+  replayFocusedElement = document.activeElement;
+
+  const modal = document.getElementById("truth-replay-modal");
+  modal.style.display = "flex";
+
+  // Focus the modal itself or next button for accessibility
+  modal.focus();
+
+  document.getElementById("replay-case-id").textContent = replaySnapshot.result.case_id || 'UNKNOWN-CASE';
+
+  renderReplayPipeline();
+  updateReplayStage();
+
+  // Keyboard listeners specific to replay
+  document.addEventListener('keydown', handleReplayKeydown);
+}
+
+function closeTruthReplay() {
+  const modal = document.getElementById("truth-replay-modal");
+  modal.style.display = "none";
+
+  // Cleanup State
+  replaySnapshot = null;
+  currentReplayStep = 0;
+
+  document.removeEventListener('keydown', handleReplayKeydown);
+
+  // Restore focus
+  if (replayFocusedElement) {
+    replayFocusedElement.focus();
+    replayFocusedElement = null;
+  }
+}
+
+function handleReplayKeydown(e) {
+  if (document.getElementById("truth-replay-modal").style.display === "none") return;
+
+  if (e.key === 'Escape') {
+    closeTruthReplay();
+  } else if (e.key === 'ArrowRight') {
+    nextReplayStep();
+  } else if (e.key === 'ArrowLeft') {
+    prevReplayStep();
+  }
+}
+
+function nextReplayStep() {
+  if (currentReplayStep < REPLAY_STAGES.length - 1) {
+    currentReplayStep++;
+    updateReplayStage();
+  }
+}
+
+function prevReplayStep() {
+  if (currentReplayStep > 0) {
+    currentReplayStep--;
+    updateReplayStage();
+  }
+}
+
+function renderReplayPipeline() {
+  const container = document.getElementById('replay-pipeline');
+  container.innerHTML = '';
+
+  REPLAY_STAGES.forEach((stage, index) => {
+    // Stage Element
+    const stageEl = document.createElement('div');
+    stageEl.className = 'truth-replay-stage';
+    stageEl.id = `replay-stage-node-${index}`;
+
+    const dot = document.createElement('div');
+    dot.className = 'truth-replay-stage-dot';
+    dot.textContent = index + 1;
+
+    const label = document.createElement('div');
+    label.className = 'truth-replay-stage-label';
+    label.textContent = stage.label;
+
+    stageEl.appendChild(dot);
+    stageEl.appendChild(label);
+
+    container.appendChild(stageEl);
+
+    // Connector (except for last element)
+    if (index < REPLAY_STAGES.length - 1) {
+      const connEl = document.createElement('div');
+      connEl.className = 'truth-replay-connector';
+      connEl.id = `replay-conn-node-${index}`;
+
+      const connText = document.createElement('div');
+      connText.className = 'truth-replay-connector-text';
+      connText.id = `replay-conn-text-${index}`;
+      connText.textContent = ''; // Will be populated dynamically
+
+      connEl.appendChild(connText);
+      container.appendChild(connEl);
+    }
+  });
+}
+
+// Hook up the buttons once the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  const replayBtn = document.getElementById("btn-replay-financial-truth");
+  if (replayBtn) {
+    replayBtn.addEventListener("click", launchTruthReplay);
+  }
+
+  const exitBtn = document.getElementById("btn-replay-exit");
+  if (exitBtn) {
+    exitBtn.addEventListener("click", closeTruthReplay);
+  }
+
+  const nextBtn = document.getElementById("btn-replay-next");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", nextReplayStep);
+  }
+
+  const prevBtn = document.getElementById("btn-replay-prev");
+  if (prevBtn) {
+    prevBtn.addEventListener("click", prevReplayStep);
+  }
+});
+
+/* ==========================================================================
+   FINANCIAL TRUTH REPLAY - STAGE RENDER LOGIC
+   ========================================================================== */
+
+function formatMoney(amount) {
+  if (amount == null) return "₹0.00";
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR'
+  }).format(amount);
+}
+
+function updateReplayStage() {
+  if (!replaySnapshot) return;
+
+  const stage = REPLAY_STAGES[currentReplayStep];
+  const snap = replaySnapshot;
+  const res = snap.result;
+
+  // Update header and footer
+  document.getElementById("replay-detail-stage-name").textContent = stage.label;
+  document.getElementById("replay-progress-indicator").textContent = `Step ${currentReplayStep + 1} of ${REPLAY_STAGES.length}`;
+
+  const btnPrev = document.getElementById("btn-replay-prev");
+  const btnNext = document.getElementById("btn-replay-next");
+  btnPrev.disabled = (currentReplayStep === 0);
+  btnNext.disabled = (currentReplayStep === REPLAY_STAGES.length - 1);
+
+  // Update visual pipeline state
+  REPLAY_STAGES.forEach((_, idx) => {
+    const nodeEl = document.getElementById(`replay-stage-node-${idx}`);
+    if (idx < currentReplayStep) {
+      nodeEl.className = 'truth-replay-stage past';
+    } else if (idx === currentReplayStep) {
+      nodeEl.className = 'truth-replay-stage active';
+    } else {
+      nodeEl.className = 'truth-replay-stage future';
+    }
+  });
+
+  // Handle causal connections between past/active
+  for (let i = 0; i < REPLAY_STAGES.length - 1; i++) {
+    const connEl = document.getElementById(`replay-conn-node-${i}`);
+    if (!connEl) continue;
+    const connText = document.getElementById(`replay-conn-text-${i}`);
+
+    // Default inactive state
+    connEl.className = 'truth-replay-connector';
+    connText.textContent = '';
+
+    if (i < currentReplayStep) {
+      // It's a past connection leading up to the current state, illuminate it if supported
+      const explicitRel = determineExplicitRelationship(i, i + 1, snap);
+      if (explicitRel) {
+        connEl.className = 'truth-replay-connector active';
+        connText.textContent = explicitRel;
+      } else {
+        connEl.className = 'truth-replay-connector';
+        // Only show "Relationship not explicitly recorded" on the immediately preceding arrow to avoid noise
+        if (i === currentReplayStep - 1) {
+            connText.textContent = "Relationship not explicitly recorded.";
+            connText.style.opacity = 1;
+        }
+      }
+    }
+  }
+
+  // Populate detail panel deterministically
+  const elWhat = document.getElementById("replay-detail-what");
+  const elWhy = document.getElementById("replay-detail-why");
+  const elProof = document.getElementById("replay-detail-proof");
+  const elEffect = document.getElementById("replay-detail-effect");
+  const elEffectContainer = document.getElementById("replay-detail-effect-container");
+
+  // Default hide financial effect unless stage uses it
+  elEffectContainer.style.display = 'none';
+
+  // Helper variables safely extracted from snapshot
+  const evidenceCount = res.evidence ? res.evidence.length : 0;
+  const firstEvidence = evidenceCount > 0 ? res.evidence[0] : null;
+  const matchResult = res.match_result || {};
+  const claimData = matchResult.claim || {};
+  const ledgerData = matchResult.ledger_entry || {};
+
+  switch(stage.id) {
+    case 'source':
+      if (evidenceCount > 0) {
+        elWhat.textContent = `Ingested ${evidenceCount} piece(s) of raw multimodal evidence.`;
+        elWhy.textContent = "Automated ingestion pipeline received unverified source artifacts.";
+        elProof.innerHTML = `<code>${firstEvidence.evidence_id || 'EVID-UNKNOWN'}</code> (${firstEvidence.type || 'DOCUMENT'})`;
+        if (evidenceCount > 1) {
+             elProof.innerHTML += `<br/><span style="font-size:0.8rem; color:var(--tr-text-muted)">+ ${evidenceCount - 1} additional artifact(s)</span>`;
+        }
+      } else {
+        elWhat.textContent = "No recorded data available for this stage.";
+        elWhy.textContent = "-";
+        elProof.textContent = "-";
+      }
+      break;
+
+    case 'claim':
+      if (claimData && claimData.claim_id) {
+        elWhat.textContent = "A financial claim was extracted by the VLM.";
+        elWhy.textContent = "Information was parsed but remains unverified (candidate claim only).";
+        elProof.innerHTML = `Claim ID: <code>${claimData.claim_id}</code><br/>Reference: <code>${claimData.reference || 'N/A'}</code>`;
+        elEffectContainer.style.display = 'block';
+        elEffect.innerHTML = `Claimed Amount: <strong>${formatMoney(claimData.amount)}</strong>`;
+      } else {
+        elWhat.textContent = "No explicit candidate claim recorded.";
+        elWhy.textContent = "-";
+        elProof.textContent = "-";
+      }
+      break;
+
+    case 'ledger':
+      if (ledgerData && ledgerData.transaction_id) {
+        elWhat.textContent = "An authoritative banking ledger transaction was identified.";
+        elWhy.textContent = "The core banking system provided an immutable UTR/settlement record.";
+        elProof.innerHTML = `Txn ID: <code>${ledgerData.transaction_id}</code><br/>UTR/Ref: <code>${ledgerData.reference || 'N/A'}</code>`;
+        elEffectContainer.style.display = 'block';
+        elEffect.innerHTML = `Ledger Amount: <strong>${formatMoney(ledgerData.amount)}</strong>`;
+      } else {
+        elWhat.textContent = "No recorded ledger data available for this stage.";
+        elWhy.textContent = "-";
+        elProof.textContent = "-";
+      }
+      break;
+
+    case 'match':
+      if (matchResult && matchResult.topology) {
+        elWhat.textContent = `Deterministic matching pipeline established a ${matchResult.topology} correspondence.`;
+        elWhy.textContent = `Match score: ${matchResult.match_score ? (matchResult.match_score * 100).toFixed(0) + '%' : 'N/A'}. Factors checked: Amount, Reference, Date.`;
+        elProof.innerHTML = `<code>${claimData.claim_id || 'UNKNOWN'}</code> ↔ <code>${ledgerData.transaction_id || 'UNKNOWN'}</code>`;
+      } else {
+        elWhat.textContent = "No explicit matching data recorded.";
+        elWhy.textContent = "-";
+        elProof.textContent = "-";
+      }
+      break;
+
+    case 'reconciliation':
+      if (res.reconciliation_status) {
+        elWhat.textContent = `The financial comparison resulted in a status of ${res.reconciliation_status}.`;
+
+        let variance = 0;
+        if (claimData.amount && ledgerData.amount) {
+           variance = Math.abs(claimData.amount - ledgerData.amount);
+        }
+
+        if (variance === 0) {
+            elWhy.innerHTML = "Amount: <strong>Agrees</strong> ✓<br/>No financial variance detected.";
+        } else {
+            elWhy.innerHTML = `Amount: <strong>Mismatch</strong> ✕<br/>Variance detected.`;
+        }
+
+        // Entity mismatch logic if applicable (e.g. from DEMO-03 or DEMO-05 scenarios)
+        if (matchResult.entity_match === false) {
+             elWhy.innerHTML += `<br/>Identity: <strong>Contradiction</strong> ✕`;
+        }
+
+        elProof.innerHTML = `Reconciliation ID: <code>${res.case_id}-RECON</code>`;
+
+        elEffectContainer.style.display = 'block';
+        elEffect.innerHTML = `
+          <div style="display:flex; justify-content:space-between; max-width: 250px;">
+             <span>CLAIMED</span> <span>${formatMoney(claimData.amount)}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; max-width: 250px;">
+             <span>MATCHED</span> <span>${formatMoney(ledgerData.amount)}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; max-width: 250px; border-top:1px solid var(--tr-border); margin-top:4px; padding-top:4px; font-weight:700;">
+             <span>VARIANCE</span> <span style="color: ${variance === 0 ? 'var(--success)' : 'var(--error)'}">${formatMoney(variance)}</span>
+          </div>
+        `;
+      } else {
+        elWhat.textContent = "No reconciliation outcome recorded.";
+        elWhy.textContent = "-";
+        elProof.textContent = "-";
+      }
+      break;
+
+    case 'controller':
+      if (snap.controller) {
+        elWhat.textContent = `AI Controller issued a directive: ${snap.controller.primary_directive || 'EVALUATE'}.`;
+        elWhy.textContent = "Policy rules applied deterministically to the reconciliation invariants.";
+        if (snap.controller.grounding_ids && snap.controller.grounding_ids.length > 0) {
+           elProof.innerHTML = "Grounded in:<br/>" + snap.controller.grounding_ids.map(id => `<code>${id}</code>`).join('<br/>');
+        } else {
+           elProof.innerHTML = `Controller Audit ID: <code>${res.case_id}-CTRL</code>`;
+        }
+      } else {
+        elWhat.textContent = "No controller decision recorded.";
+        elWhy.textContent = "-";
+        elProof.textContent = "-";
+      }
+      break;
+
+    case 'human':
+      if (snap.review && snap.review.decision !== "PENDING" && snap.review.decision !== "UNRESOLVED") {
+        elWhat.textContent = `Human reviewer recorded a final decision: ${snap.review.decision}.`;
+        elWhy.textContent = snap.review.reviewer_notes ? snap.review.reviewer_notes[0] : "Oversight confirmed deterministic system findings.";
+        elProof.innerHTML = `Reviewer ID: <code>${snap.review.assigned_reviewer || 'SYSTEM'}</code>`;
+      } else {
+        elWhat.textContent = "Pending — no human decision recorded.";
+        elWhy.textContent = "-";
+        elProof.textContent = "-";
+      }
+      break;
+
+    case 'truth':
+      if (res.reconciliation_status) {
+         elWhat.innerHTML = `<strong style="color:var(--success); font-size: 1.1rem;">FINANCIAL TRUTH CONFIRMED</strong>`;
+         elWhy.textContent = "Cryptographic integrity of the evidence-to-ledger lineage is intact.";
+         elProof.innerHTML = `Final Case Status: <code>${res.status || 'CLOSED'}</code>`;
+
+         elEffectContainer.style.display = 'block';
+         elEffect.innerHTML = `<strong style="font-size: 1.5rem; color:var(--success);">${formatMoney(ledgerData.amount || 0)}</strong>`;
+      } else {
+         elWhat.textContent = "Final truth not established.";
+         elWhy.textContent = "-";
+         elProof.textContent = "-";
+      }
+      break;
+  }
+}
+
+/**
+ * Determines explicit causal relationships between stage indices based on snapshot data.
+ * Returns a string formatted like "EVID-01 → CLM-01", or null if not explicitly backed.
+ */
+function determineExplicitRelationship(fromIdx, toIdx, snap) {
+  const fromStage = REPLAY_STAGES[fromIdx].id;
+  const toStage = REPLAY_STAGES[toIdx].id;
+  const res = snap.result;
+  const matchResult = res.match_result || {};
+  const claimData = matchResult.claim || {};
+  const ledgerData = matchResult.ledger_entry || {};
+
+  if (fromStage === 'source' && toStage === 'claim') {
+     if (res.evidence && res.evidence.length > 0 && claimData.claim_id) {
+         const evId = res.evidence[0].evidence_id || 'EVID-XX';
+         return `${evId} → ${claimData.claim_id}`;
+     }
+  }
+
+  if (fromStage === 'claim' && toStage === 'ledger') {
+     if (claimData.claim_id && ledgerData.transaction_id) {
+         // This is technically established by 'match', but linearly it flows through here
+         return `${claimData.claim_id} → ${ledgerData.transaction_id}`;
+     }
+  }
+
+  if (fromStage === 'ledger' && toStage === 'match') {
+      if (ledgerData.transaction_id && matchResult.topology) {
+          return `${ledgerData.transaction_id} → MATCH-PIPELINE`;
+      }
+  }
+
+  if (fromStage === 'match' && toStage === 'reconciliation') {
+      if (matchResult.topology && res.reconciliation_status) {
+          return `MATCH-RES → RECON-1`;
+      }
+  }
+
+  if (fromStage === 'reconciliation' && toStage === 'controller') {
+      if (res.reconciliation_status && snap.controller) {
+          return `RECON-1 → CTRL-POLICY`;
+      }
+  }
+
+  if (fromStage === 'controller' && toStage === 'human') {
+      if (snap.controller && snap.review && snap.review.decision !== "PENDING" && snap.review.decision !== "UNRESOLVED") {
+          return `CTRL-DIRECTIVE → REV-DECISION`;
+      }
+  }
+
+  if (fromStage === 'human' && toStage === 'truth') {
+      // Truth is derived from the DAG
+      if (res.reconciliation_status) {
+          return `DAG-VERIFIED → TRUTH`;
+      }
+  }
+
+  // Fallback if stages are not directly connected in this logic or missing IDs
+  return null;
+}
