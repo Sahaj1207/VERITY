@@ -2989,6 +2989,77 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   margin-bottom: 1rem;
 }
 
+/* Stage 9 Financial Outcome KPI Row */
+.replay-financial-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.replay-financial-kpi-card {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.replay-financial-kpi-label {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.replay-financial-kpi-val {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--on-surface);
+}
+
+.replay-forensic-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed var(--outline-variant);
+  font-size: 0.8125rem;
+  gap: 0.5rem;
+}
+
+.replay-forensic-row:last-child {
+  border-bottom: none;
+}
+
+.replay-forensic-key {
+  color: var(--on-surface-variant);
+  font-weight: 600;
+}
+
+.replay-forensic-val {
+  color: var(--on-surface);
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-align: right;
+  word-break: break-word;
+}
+
+.replay-forensic-conclusion {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--on-surface-variant);
+  padding-top: 0.6rem;
+  margin-top: 0.4rem;
+  border-top: 1px dashed var(--outline-variant);
+  word-break: break-word;
+}
+
 .replay-proof-strip {
   display: flex;
   flex-wrap: wrap;

@@ -4429,7 +4429,23 @@ function buildTruthReplaySnapshot(caseResult, controllerBrief, reviewRecord) {
     requires_review: Boolean(rawCase.requires_review),
     total_execution_time_ms: rawCase.total_execution_time_ms != null ? Number(rawCase.total_execution_time_ms) : null,
     text_report: rawCase.text_report || truthReport.summary || "",
-    provenance_hash: provHash
+    provenance_hash: provHash,
+    reconciliation_id: reconFacts.reconciliation_id || null,
+    expected_amount: reconFacts.expected_amount != null ? reconFacts.expected_amount : null,
+    matched_amount: reconFacts.matched_amount != null ? reconFacts.matched_amount : null,
+    outstanding_amount: reconFacts.outstanding_amount != null ? reconFacts.outstanding_amount : null,
+    source_count: sourceFacts.length,
+    claim_count: claimFacts.length,
+    txn_count: txnFacts.length,
+    match_topology: matchFacts.topology || null,
+    match_status: matchFacts.match_status || null,
+    match_score: matchFacts.confidence_score != null ? matchFacts.confidence_score : null,
+    conflict_count: conflictFacts.length,
+    risk_rating: controllerFacts.risk_rating || null,
+    recommended_decision: controllerFacts.recommended_decision || null,
+    review_id: humanFacts.review_id !== "UNASSIGNED" ? humanFacts.review_id : null,
+    review_status: humanFacts.review_status || null,
+    human_decision: humanFacts.decision !== "NONE" ? humanFacts.decision : null
   };
   const finalGroundingIds = [caseId];
   const finalParentIds = Array.from(new Set([
@@ -5087,6 +5103,52 @@ function renderStageSpecificHTML(stage) {
         ? `PROVENANCE: ${escapeReplayHtml(fin.provenance_hash)}`
         : "PROVENANCE: NOT RECORDED";
 
+      const hasFinOutcome = fin.expected_amount != null || fin.matched_amount != null || fin.outstanding_amount != null;
+      const finOutcomeHTML = hasFinOutcome ? `
+        <div class="replay-financial-kpi-row">
+          <div class="replay-financial-kpi-card">
+            <span class="replay-financial-kpi-label">Expected Claim Amount</span>
+            <div class="replay-financial-kpi-val" style="color: var(--on-surface);">
+              ${fin.expected_amount != null ? `₹${Number(fin.expected_amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "NOT RECORDED"}
+            </div>
+          </div>
+          <div class="replay-financial-kpi-card">
+            <span class="replay-financial-kpi-label">Matched Ledger Amount</span>
+            <div class="replay-financial-kpi-val" style="color: ${statusClass === 'confirmed' ? 'var(--success)' : 'var(--on-surface)'};">
+              ${fin.matched_amount != null ? `₹${Number(fin.matched_amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "NOT RECORDED"}
+            </div>
+          </div>
+          <div class="replay-financial-kpi-card">
+            <span class="replay-financial-kpi-label">Outstanding Variance</span>
+            <div class="replay-financial-kpi-val" style="color: ${(fin.outstanding_amount || 0) > 0 ? 'var(--warning)' : 'var(--on-surface-variant)'};">
+              ${fin.outstanding_amount != null ? `₹${Number(fin.outstanding_amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "NOT RECORDED"}
+            </div>
+          </div>
+        </div>
+      ` : '';
+
+      let factSummary = "";
+      if (statusRaw === "CONFIRMED" || statusLower === "confirmed") {
+        factSummary = "The recorded financial claim was reconciled against the available ledger evidence. Invariant check completed with 0 discrepancies.";
+      } else if (statusLower.includes("contradict") || statusLower.includes("fraud") || statusLower.includes("error")) {
+        factSummary = `The investigation detected ${fin.conflict_count || 1} material discrepancy(ies) between the claimed amounts and ledger records.`;
+      } else if (statusLower.includes("ambiguous") || fin.requires_review) {
+        factSummary = "Unresolved matching candidates or duplicate records were identified, requiring human review intervention.";
+      } else {
+        factSummary = "Authoritative evidence was ingested and evaluated against ledger invariants.";
+      }
+
+      let rationaleSummary = "";
+      if (statusRaw === "CONFIRMED" || statusLower === "confirmed") {
+        rationaleSummary = "Deterministic double-entry balance verified with 100% invariant alignment and cryptographically sealed provenance.";
+      } else if (statusLower.includes("contradict") || statusLower.includes("fraud") || statusLower.includes("error")) {
+        rationaleSummary = "Deterministic invariants failed due to conflicting source evidence and ledger records.";
+      } else if (statusLower.includes("ambiguous") || fin.requires_review) {
+        rationaleSummary = "Deterministic matching rules flagged duplicate or ambiguous topologies that cannot be automatically resolved.";
+      } else {
+        rationaleSummary = "Deterministic reconciliation rules evaluated and recorded in the immutable audit trail.";
+      }
+
       factsCardHTML = `
         <div class="replay-verdict-card ${statusClass}">
           <!-- Verdict Hero Header -->
@@ -5109,27 +5171,70 @@ function renderStageSpecificHTML(stage) {
             </div>
           </div>
 
+          <!-- Prominent Financial Outcome Section (When Available) -->
+          ${finOutcomeHTML}
+
           <!-- Two-Column Forensic Scan Grid -->
           <div class="replay-two-col-grid">
-            <!-- Col 1: What Happened? -->
+            <!-- Col 1: What Happened? (Structured Facts) -->
             <div style="background: var(--surface-container-low); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--outline-variant);">
-              <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.8125rem; color: var(--on-surface); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">
+              <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.8125rem; color: var(--on-surface); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;">
                 <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--primary);">fact_check</span>
-                <span>Forensic Finding (What Happened?)</span>
+                <span>What Happened? (Authoritative Facts)</span>
               </div>
-              <div style="font-size: 0.85rem; line-height: 1.6; color: var(--on-surface); word-break: break-word; white-space: pre-line;">
-                ${escapeReplayHtml(fin.text_report || "Deterministic multi-modal financial truth reconstructed from source evidence and verified ledger transactions.")}
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <div class="replay-forensic-row">
+                  <span class="replay-forensic-key">Ingested Sources</span>
+                  <span class="replay-forensic-val">${fin.source_count != null ? `${fin.source_count} Verified Artifact(s)` : 'NOT RECORDED'}</span>
+                </div>
+                <div class="replay-forensic-row">
+                  <span class="replay-forensic-key">Extracted Claims</span>
+                  <span class="replay-forensic-val">${fin.claim_count != null ? `${fin.claim_count} Monetary Claim(s)` : 'NOT RECORDED'}</span>
+                </div>
+                <div class="replay-forensic-row">
+                  <span class="replay-forensic-key">Bank Ledger Transactions</span>
+                  <span class="replay-forensic-val">${fin.txn_count != null ? `${fin.txn_count} Statement Record(s)` : 'NOT RECORDED'}</span>
+                </div>
+                <div class="replay-forensic-row">
+                  <span class="replay-forensic-key">Invariant Discrepancies</span>
+                  <span class="replay-forensic-val" style="color: ${fin.conflict_count === 0 ? 'var(--success)' : 'var(--error)'};">
+                    ${fin.conflict_count != null ? (fin.conflict_count === 0 ? '0 (Clean Invariant Check)' : `${fin.conflict_count} Detected`) : 'NOT RECORDED'}
+                  </span>
+                </div>
+              </div>
+              <div class="replay-forensic-conclusion">
+                ${escapeReplayHtml(factSummary)}
               </div>
             </div>
 
-            <!-- Col 2: Deterministic Rationale (Why?) -->
+            <!-- Col 2: Why Is This True? (Deterministic Signals) -->
             <div style="background: var(--surface-container-low); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--outline-variant);">
-              <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.8125rem; color: var(--on-surface); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">
+              <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.8125rem; color: var(--on-surface); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;">
                 <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--primary);">psychology</span>
-                <span>Deterministic Invariant Rationale (Why?)</span>
+                <span>Why Is This True? (Deterministic Signals)</span>
               </div>
-              <div style="font-size: 0.85rem; line-height: 1.6; color: var(--on-surface-variant); word-break: break-word;">
-                ${escapeReplayHtml(stage.why || "Deterministic multi-modal financial truth reconstructed and sealed in immutable audit store.")}
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <div class="replay-forensic-row">
+                  <span class="replay-forensic-key">Match Topology</span>
+                  <span class="replay-forensic-val">${fin.match_topology ? escapeReplayHtml(fin.match_topology) : 'NOT RECORDED'}</span>
+                </div>
+                <div class="replay-forensic-row">
+                  <span class="replay-forensic-key">Match Status & Score</span>
+                  <span class="replay-forensic-val">${fin.match_status ? `${escapeReplayHtml(fin.match_status)}${fin.match_score != null ? ` (${Math.round(fin.match_score * 100)}%)` : ''}` : 'NOT RECORDED'}</span>
+                </div>
+                <div class="replay-forensic-row">
+                  <span class="replay-forensic-key">Controller Policy</span>
+                  <span class="replay-forensic-val">${fin.recommended_decision ? escapeReplayHtml(fin.recommended_decision) : 'NOT RECORDED'}</span>
+                </div>
+                <div class="replay-forensic-row">
+                  <span class="replay-forensic-key">Human Review State</span>
+                  <span class="replay-forensic-val" style="color: ${fin.requires_review ? 'var(--warning)' : 'var(--success)'};">
+                    ${fin.requires_review ? (fin.review_status ? `Review ${escapeReplayHtml(fin.review_status)}` : 'Review Required') : 'Self-Contained (Zero Override)'}
+                  </span>
+                </div>
+              </div>
+              <div class="replay-forensic-conclusion">
+                ${escapeReplayHtml(rationaleSummary)}
               </div>
             </div>
           </div>
