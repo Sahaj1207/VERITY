@@ -1,706 +1,2026 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VERITY — Financial Truth, Reconstructed | AI Finance Controller</title>
+  <title>VERITY — Financial Truth, Reconstructed | Forensic Workspace</title>
   <meta name="description" content="AI-powered multimodal financial reconciliation and truth reconstruction engine for Indian SMBs and freelancers.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
-  <header>
-    <div class="header-container">
-      <div class="logo-group">
-        <div class="logo-badge">VERITY</div>
-        <div class="logo-text">
-          <h1>Financial Truth, Reconstructed</h1>
-          <p>Autonomous Multimodal Financial Reconciliation Engine</p>
+  <!-- =========================================================================
+       1. FIXED LEFT SIDEBAR (Desktop 240px / Mobile Drawer)
+       ========================================================================= -->
+  <aside class="app-sidebar" id="app-sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-badge">V</div>
+      <div class="brand-text">
+        <h1>VERITY</h1>
+        <p>Forensic Workspace</p>
+      </div>
+    </div>
+
+    <!-- Navigation List -->
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <a class="nav-item active" data-nav="command-center" id="nav-command-center">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span>Command Center</span>
+      </a>
+      <a class="nav-item" data-nav="cases" id="nav-cases">
+        <span class="material-symbols-outlined">folder_open</span>
+        <span>Cases</span>
+      </a>
+      <a class="nav-item" data-nav="evidence" id="nav-evidence">
+        <span class="material-symbols-outlined">description</span>
+        <span>Evidence</span>
+      </a>
+      <a class="nav-item" data-nav="counterparty" id="nav-counterparty">
+        <span class="material-symbols-outlined">memory</span>
+        <span>Counterparty Memory</span>
+      </a>
+      <a class="nav-item" data-nav="controller" id="nav-controller">
+        <span class="material-symbols-outlined">settings_account_box</span>
+        <span>Controller</span>
+      </a>
+      <a class="nav-item" data-nav="review" id="nav-review">
+        <span class="material-symbols-outlined">rate_review</span>
+        <span>Review</span>
+      </a>
+      <a class="nav-item" data-nav="remediation" id="nav-remediation">
+        <span class="material-symbols-outlined">healing</span>
+        <span>Remediation</span>
+      </a>
+      <a class="nav-item" data-nav="audit" id="nav-audit">
+        <span class="material-symbols-outlined">history_edu</span>
+        <span>Audit</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-new-investigation" id="btn-sidebar-new-investigation">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem;">add</span>
+        <span>New Investigation</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <!-- =========================================================================
+       2. MAIN CONTENT CANVAS
+       ========================================================================= -->
+  <div class="app-main">
+
+    <!-- Top Sticky Header -->
+    <header class="top-header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle navigation menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="header-context-title">
+          <span class="font-headline-md" style="font-size: 1.05rem;" id="header-breadcrumb-title">Command Center</span>
+          <span class="badge badge-partial" style="font-size: 0.65rem;" id="active-case-tag-pill">No Case Selected</span>
         </div>
       </div>
-      <div class="header-meta">
-        <span class="tag-badge">Razorpay AI Buildathon 2026</span>
-        <div class="status-dot-group" title="Engine Liveness & Readiness">
+
+      <div class="header-right">
+        <!-- System Status Indicator -->
+        <div class="status-pill" title="Engine Liveness & Readiness">
           <span class="status-dot" id="system-status-dot"></span>
           <span id="system-status-text">Engine Online</span>
         </div>
-        <div class="status-dot-group" id="storage-status-pill" title="Persistent Storage Status" style="border: 1px solid var(--border-subtle); padding: 0.2rem 0.5rem; border-radius: var(--radius-sm);">
-          <span class="status-dot" id="storage-status-dot" style="background: var(--status-confirmed);"></span>
-          <span id="storage-status-text" style="font-size: 0.78rem;">Storage: CONNECTED</span>
+
+        <!-- Storage Status Indicator -->
+        <div class="status-pill" id="storage-status-pill" title="Persistent Storage Status">
+          <span class="status-dot" id="storage-status-dot"></span>
+          <span id="storage-status-text">Storage: CONNECTED</span>
         </div>
+
+        <!-- Theme Toggle (Light / Dark Mode) -->
+        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light / Dark Mode" aria-label="Toggle theme">
+          <span class="material-symbols-outlined" style="font-size: 1.15rem;" id="theme-toggle-icon">dark_mode</span>
+        </button>
       </div>
+    </header>
+
+    <!-- UI Alert / Error Banner -->
+    <div id="ui-alert-banner" style="display: none;">
+      <span id="ui-alert-message">Alert message</span>
+      <button id="ui-alert-close" aria-label="Close alert">&times;</button>
     </div>
-  </header>
 
-  <!-- Notification / Error Banner -->
-  <div id="ui-alert-banner" style="display: none; max-width: 1400px; margin: 1rem auto -1rem; padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-size: 0.88rem; font-weight: 500; align-items: center; justify-content: space-between;">
-    <span id="ui-alert-message">Alert message</span>
-    <button id="ui-alert-close" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.1rem; padding: 0 0.5rem;">&times;</button>
-  </div>
+    <!-- Scrollable Workspace Canvas -->
+    <main class="workspace-canvas">
 
-    <!-- Golden Demo Master Scenarios (Day 20 Command Center) -->
-    <section class="demo-bar" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.08)); border: 1px solid rgba(99, 102, 241, 0.35); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35); margin-bottom: 1.25rem;">
-      <div class="demo-bar-header" style="margin-bottom: 0.6rem;">
-        <div style="display: flex; align-items: center; gap: 0.6rem;">
-          <span style="font-size: 1.1rem;">🎯</span>
-          <span class="demo-bar-title" style="font-size: 0.95rem; letter-spacing: 0.02em; color: #fff;">GOLDEN DEMO CONTROLLER SCENARIOS</span>
-          <span class="tag-badge" style="background: rgba(99, 102, 241, 0.25); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.5);">3–5 Min Judge Walkthrough</span>
+      <!-- =====================================================================
+           SECTION: COMMAND CENTER VIEW (Stitch Layout + Golden Demos)
+           ===================================================================== -->
+      <div id="view-command-center" class="app-view active">
+
+        <!-- Page Title & Overview Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <h1 class="font-display" style="color: var(--primary);">Command Center</h1>
+              <span class="badge badge-confirmed" style="font-size: 0.7rem;">Financial Truth Operations</span>
+            </div>
+            <p class="font-body-md" style="color: var(--on-surface-variant);">
+              Understand what needs attention, what has been verified, and where VERITY is investigating.
+            </p>
+          </div>
+          <div class="status-pill">
+            <span style="display: flex; align-items: center; gap: 0.35rem;"><span class="status-dot"></span> Engine Operational</span>
+            <span style="border-left: 1px solid var(--outline-variant); padding-left: 0.5rem; margin-left: 0.25rem;">Deterministic Matching</span>
+            <span style="border-left: 1px solid var(--outline-variant); padding-left: 0.5rem; margin-left: 0.25rem; color: var(--status-confirmed);">Live</span>
+          </div>
         </div>
-        <span style="font-size: 0.78rem; color: var(--text-muted);">Click any scenario to execute full 8-stage pipeline</span>
-      </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.6rem;" id="golden-demo-buttons-container">
-        <button class="golden-scenario-btn" data-scenario="DEMO-01" id="btn-demo-01">
-          <div class="sc-header"><span class="sc-badge badge-clean">DEMO-01</span><strong>Clean 1:1 Settlement</strong></div>
-          <div class="sc-sub">₹35k Invoice + Bank Statement → CONFIRMED</div>
-        </button>
-        <button class="golden-scenario-btn" data-scenario="DEMO-02" id="btn-demo-02">
-          <div class="sc-header"><span class="sc-badge badge-partial">DEMO-02</span><strong>Partial Settlement</strong></div>
-          <div class="sc-sub">₹12k Paid / ₹20k Obligation → ₹8k Shortfall</div>
-        </button>
-        <button class="golden-scenario-btn" data-scenario="DEMO-03" id="btn-demo-03">
-          <div class="sc-header"><span class="sc-badge badge-contra">DEMO-03</span><strong>Amount Contradiction</strong></div>
-          <div class="sc-sub">₹18k Bank vs ₹20k Invoice → CONTRADICTED</div>
-        </button>
-        <button class="golden-scenario-btn" data-scenario="DEMO-04" id="btn-demo-04">
-          <div class="sc-header"><span class="sc-badge badge-multi">DEMO-04</span><strong>Messy Multimodal</strong></div>
-          <div class="sc-sub">Hinglish WhatsApp + PDF + Screenshot</div>
-        </button>
-        <button class="golden-scenario-btn active-hero" data-scenario="DEMO-05" id="btn-demo-05" style="border-color: #818cf8; background: rgba(99, 102, 241, 0.2);">
-          <div class="sc-header"><span class="sc-badge badge-hero">HERO DEMO-05</span><strong style="color: #c7d2fe;">Counterparty UTR Reuse</strong></div>
-          <div class="sc-sub" style="color: #a5b4fc;">Reused UTR Detected Across Cases!</div>
-        </button>
-      </div>
-    </section>
 
-    <!-- Quick Benchmark Scenarios (Legacy / Regression) -->
-    <section class="demo-bar" style="margin-bottom: 1.25rem;">
-      <div class="demo-bar-header">
-        <span class="demo-bar-title">⚡ Quick Benchmark Suite</span>
-        <span style="font-size: 0.78rem; color: var(--text-faint);">10 Deterministic Test Cases</span>
-      </div>
-      <div class="demo-pills" id="demo-pills-container">
-        <!-- Dynamically populated from /api/v1/demo-cases -->
-      </div>
-    </section>
+        <!-- Section 1: Executive 4-Column Summary Metrics -->
+        <section class="cc-metrics-grid" style="margin-bottom: 1.75rem;">
+          <div class="card cc-metric-card" style="padding: 1.25rem; border-left: 4px solid var(--primary); background: var(--surface-container-lowest);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Active Investigations</span>
+              <span class="material-symbols-outlined" style="font-size: 1.25rem; color: var(--primary); opacity: 0.7;">folder_open</span>
+            </div>
+            <div class="font-data-lg" id="cc-open-cases" style="color: var(--primary); font-size: 2rem; margin: 0.35rem 0 0.2rem 0; font-weight: 800;">76</div>
+            <div class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">Deterministic Portfolio Queue</div>
+          </div>
+          <div class="card cc-metric-card" style="padding: 1.25rem; border-left: 4px solid var(--warning); background: var(--surface-container-lowest);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Needs Attention</span>
+              <span class="material-symbols-outlined" style="font-size: 1.25rem; color: var(--warning); opacity: 0.7;">warning</span>
+            </div>
+            <div class="font-data-lg" id="cc-review-cases" style="color: var(--warning); font-size: 2rem; margin: 0.35rem 0 0.2rem 0; font-weight: 800;">0</div>
+            <div class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">Ambiguities &amp; Exceptions</div>
+          </div>
+          <div class="card cc-metric-card" style="padding: 1.25rem; border-left: 4px solid var(--status-risk-violet); background: var(--surface-container-lowest);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">High / Critical Risk</span>
+              <span class="material-symbols-outlined" style="font-size: 1.25rem; color: var(--status-risk-violet); opacity: 0.7;">memory</span>
+            </div>
+            <div class="font-data-lg" id="cc-risk-cases" style="color: var(--status-risk-violet); font-size: 2rem; margin: 0.35rem 0 0.2rem 0; font-weight: 800;">4</div>
+            <div class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">Counterparty Memory Alerts</div>
+          </div>
+          <div class="card cc-metric-card" style="padding: 1.25rem; border-left: 4px solid var(--success); background: var(--surface-container-lowest);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Total Exposure</span>
+              <span class="material-symbols-outlined" style="font-size: 1.25rem; color: var(--success); opacity: 0.7;">account_balance</span>
+            </div>
+            <div class="font-data-lg" id="cc-total-exp" style="color: var(--on-surface); font-size: 1.75rem; margin: 0.35rem 0 0.2rem 0; font-weight: 800;">₹26,30,000.00</div>
+            <div class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">Cumulative Ledger Volume</div>
+          </div>
+        </section>
 
-    <!-- Case Input Section -->
-    <section class="input-section">
-      <div class="tabs-header">
-        <button class="tab-btn active" data-tab="tab-upload">Upload Evidence</button>
-        <button class="tab-btn" data-tab="tab-text">Raw Text / WhatsApp</button>
-        <button class="tab-btn" data-tab="tab-json">JSON Case</button>
+        <!-- Section 2: Signature Investigation Pipeline -->
+        <section class="card" id="cc-investigation-pipeline" style="padding: 1.25rem 1.5rem; margin-bottom: 1.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">account_tree</span>
+                <span>INVESTIGATION PIPELINE</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Live distribution of financial cases across the 7-stage reconstruction lifecycle.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Automated Ingestion &bull; Controller Assessed</span>
+          </div>
+
+          <div class="pipeline-container">
+            <div class="pipeline-stage active" id="pipe-stage-1">
+              <div class="pipeline-icon-circle"><span class="material-symbols-outlined" style="font-size: 1.15rem;">cloud_upload</span></div>
+              <div class="pipeline-label">1. Ingest</div>
+              <div class="pipeline-count" id="pipe-count-1">76</div>
+            </div>
+            <span class="material-symbols-outlined pipeline-arrow">arrow_forward</span>
+
+            <div class="pipeline-stage active" id="pipe-stage-2">
+              <div class="pipeline-icon-circle"><span class="material-symbols-outlined" style="font-size: 1.15rem;">document_scanner</span></div>
+              <div class="pipeline-label">2. Extract</div>
+              <div class="pipeline-count" id="pipe-count-2">76</div>
+            </div>
+            <span class="material-symbols-outlined pipeline-arrow">arrow_forward</span>
+
+            <div class="pipeline-stage active" id="pipe-stage-3">
+              <div class="pipeline-icon-circle"><span class="material-symbols-outlined" style="font-size: 1.15rem;">sync_alt</span></div>
+              <div class="pipeline-label">3. Match</div>
+              <div class="pipeline-count" id="pipe-count-3">74</div>
+            </div>
+            <span class="material-symbols-outlined pipeline-arrow">arrow_forward</span>
+
+            <div class="pipeline-stage active" id="pipe-stage-4">
+              <div class="pipeline-icon-circle"><span class="material-symbols-outlined" style="font-size: 1.15rem;">balance</span></div>
+              <div class="pipeline-label">4. Reconcile</div>
+              <div class="pipeline-count" id="pipe-count-4">72</div>
+            </div>
+            <span class="material-symbols-outlined pipeline-arrow">arrow_forward</span>
+
+            <div class="pipeline-stage active" id="pipe-stage-5">
+              <div class="pipeline-icon-circle"><span class="material-symbols-outlined" style="font-size: 1.15rem;">policy</span></div>
+              <div class="pipeline-label">5. Controller</div>
+              <div class="pipeline-count" id="pipe-count-5">68</div>
+            </div>
+            <span class="material-symbols-outlined pipeline-arrow">arrow_forward</span>
+
+            <div class="pipeline-stage" id="pipe-stage-6">
+              <div class="pipeline-icon-circle"><span class="material-symbols-outlined" style="font-size: 1.15rem;">rate_review</span></div>
+              <div class="pipeline-label">6. Review</div>
+              <div class="pipeline-count" id="pipe-count-6">18</div>
+            </div>
+            <span class="material-symbols-outlined pipeline-arrow">arrow_forward</span>
+
+            <div class="pipeline-stage confirmed" id="pipe-stage-7">
+              <div class="pipeline-icon-circle"><span class="material-symbols-outlined" style="font-size: 1.15rem;">task_alt</span></div>
+              <div class="pipeline-label">7. Confirmed</div>
+              <div class="pipeline-count" id="pipe-count-7">58</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 3: Middle Grid (Risk Distribution Donut + Needs Attention Triage) -->
+        <section class="scene-grid-2col" style="margin-bottom: 1.75rem;">
+
+          <!-- Risk Distribution Donut Visual -->
+          <div class="card" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem;">
+              <div>
+                <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.4rem;">
+                  <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">donut_small</span>
+                  <span>RISK DISTRIBUTION</span>
+                </h2>
+                <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                  Portfolio risk exposure classified by deterministic severity.
+                </p>
+              </div>
+              <span class="font-label-caps" style="font-size: 0.7rem; color: var(--on-surface-variant);">Live Portfolio</span>
+            </div>
+
+            <div class="donut-grid" id="cc-risk-donut-chart">
+              <!-- SVG Donut Chart -->
+              <div style="position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center;">
+                <svg width="140" height="140" viewBox="0 0 42 42" style="transform: rotate(-90deg);">
+                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--surface-container-high)" stroke-width="5"></circle>
+                  <!-- Low Risk Arc (Green) -->
+                  <circle id="donut-arc-low" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--status-confirmed)" stroke-width="5" stroke-dasharray="67 33" stroke-dashoffset="0"></circle>
+                  <!-- Medium Risk Arc (Blue/Secondary) -->
+                  <circle id="donut-arc-medium" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--secondary)" stroke-width="5" stroke-dasharray="20 80" stroke-dashoffset="-67"></circle>
+                  <!-- High Risk Arc (Amber) -->
+                  <circle id="donut-arc-high" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--warning)" stroke-width="5" stroke-dasharray="10 90" stroke-dashoffset="-87"></circle>
+                  <!-- Critical Risk Arc (Red) -->
+                  <circle id="donut-arc-critical" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--error)" stroke-width="5" stroke-dasharray="3 97" stroke-dashoffset="-97"></circle>
+                </svg>
+                <div style="position: absolute; text-align: center; pointer-events: none;">
+                  <div class="font-data-lg" id="cc-donut-total-count" style="font-size: 1.5rem; font-weight: 800; color: var(--on-surface);">76</div>
+                  <div class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Total Cases</div>
+                </div>
+              </div>
+
+              <!-- Legend & Breakdown -->
+              <div class="donut-legend" id="cc-risk-legend">
+                <div class="donut-legend-item">
+                  <span style="display: flex; align-items: center;"><span class="donut-color-dot" style="background-color: var(--status-confirmed);"></span><strong>LOW RISK</strong></span>
+                  <span style="font-family: var(--font-mono); font-weight: 600;" id="risk-count-low">72 (67%)</span>
+                </div>
+                <div class="donut-legend-item">
+                  <span style="display: flex; align-items: center;"><span class="donut-color-dot" style="background-color: var(--secondary);"></span><strong>MEDIUM RISK</strong></span>
+                  <span style="font-family: var(--font-mono); font-weight: 600;" id="risk-count-medium">8 (10%)</span>
+                </div>
+                <div class="donut-legend-item">
+                  <span style="display: flex; align-items: center;"><span class="donut-color-dot" style="background-color: var(--warning);"></span><strong>HIGH RISK</strong></span>
+                  <span style="font-family: var(--font-mono); font-weight: 600;" id="risk-count-high">4 (17%)</span>
+                </div>
+                <div class="donut-legend-item">
+                  <span style="display: flex; align-items: center;"><span class="donut-color-dot" style="background-color: var(--error);"></span><strong>CRITICAL</strong></span>
+                  <span style="font-family: var(--font-mono); font-weight: 600;" id="risk-count-critical">1 (1%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Needs Attention Triage Queue -->
+          <div class="card" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                  <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--warning);">warning</span>
+                  <span>NEEDS ATTENTION</span>
+                </h2>
+                <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                  Active exceptions requiring investigation, reconciliation, or human review.
+                </p>
+              </div>
+              <span class="font-data-sm" style="color: var(--on-surface-variant); font-size: 0.75rem;" id="cc-triage-summary-count">Active Triage Queue</span>
+            </div>
+
+            <div class="attention-grid" id="needs-attention-container" style="display: flex; flex-direction: column; gap: 0.6rem;">
+              <div style="padding: 1.5rem; text-align: center; color: var(--on-surface-variant); font-size: 0.85rem;">
+                Loading active portfolio exceptions…
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Section 4: Lower Grid (Recently Confirmed + Top Counterparty Exposures) -->
+        <section class="scene-grid-2col" style="margin-bottom: 1.75rem;">
+
+          <!-- Recently Confirmed Strip -->
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--outline-variant); background-color: var(--surface-container-low); display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.4rem;">
+                  <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--success);">task_alt</span>
+                  <span>RECENTLY CONFIRMED</span>
+                </h2>
+                <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                  Deterministic reconciliations verified without unresolved variance.
+                </p>
+              </div>
+              <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Verified Ledger</span>
+            </div>
+            <div style="overflow-x: auto; max-width: 100%; padding: 0.25rem 0.5rem;">
+              <table class="confirmed-strip-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--outline-variant); color: var(--on-surface-variant);">
+                    <th style="font-size: 0.7rem; padding: 0.5rem 0.6rem; text-align: left;">Case ID</th>
+                    <th style="font-size: 0.7rem; padding: 0.5rem 0.6rem; text-align: left;">Context</th>
+                    <th style="font-size: 0.7rem; padding: 0.5rem 0.6rem; text-align: right;">Financial Truth</th>
+                    <th style="font-size: 0.7rem; padding: 0.5rem 0.6rem; text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom: 1px solid var(--outline-variant);">
+                    <td style="font-family: var(--font-mono); color: var(--primary); font-weight: 700; font-size: 0.78rem; padding: 0.55rem 0.6rem;">DAY10-01-CLEAN-1TO1</td>
+                    <td style="padding: 0.55rem 0.6rem;">
+                      <div style="font-weight: 600; font-size: 0.8125rem; color: var(--on-surface);">Acme Global Infratech</div>
+                      <div style="font-size: 0.72rem; color: var(--on-surface-variant);">1:1 Match Verified</div>
+                    </td>
+                    <td style="text-align: right; padding: 0.55rem 0.6rem; font-family: var(--font-mono); font-weight: 700; color: var(--status-confirmed); font-size: 0.8125rem;">
+                      ₹35,000.00
+                    </td>
+                    <td style="text-align: right; padding: 0.55rem 0.6rem;">
+                      <button class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="inspectTriageCase('DAY10-01-CLEAN-1TO1')">View →</button>
+                    </td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--outline-variant);">
+                    <td style="font-family: var(--font-mono); color: var(--primary); font-weight: 700; font-size: 0.78rem; padding: 0.55rem 0.6rem;">DAY18-06-REFERENCE-REUSE</td>
+                    <td style="padding: 0.55rem 0.6rem;">
+                      <div style="font-weight: 600; font-size: 0.8125rem; color: var(--on-surface);">Vendor A Logistics</div>
+                      <div style="font-size: 0.72rem; color: var(--on-surface-variant);">Reference reuse detected</div>
+                    </td>
+                    <td style="text-align: right; padding: 0.55rem 0.6rem; font-family: var(--font-mono); font-weight: 700; color: var(--status-confirmed); font-size: 0.8125rem;">
+                      ₹35,000.00
+                    </td>
+                    <td style="text-align: right; padding: 0.55rem 0.6rem;">
+                      <button class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="inspectTriageCase('DAY18-06-REFERENCE-REUSE')">View →</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--font-mono); color: var(--primary); font-weight: 700; font-size: 0.78rem; padding: 0.55rem 0.6rem;">DAY10-08-CROSS-MODAL</td>
+                    <td style="padding: 0.55rem 0.6rem;">
+                      <div style="font-weight: 600; font-size: 0.8125rem; color: var(--on-surface);">Zenith Media House</div>
+                      <div style="font-size: 0.72rem; color: var(--on-surface-variant);">WhatsApp + PDF Matched</div>
+                    </td>
+                    <td style="text-align: right; padding: 0.55rem 0.6rem; font-family: var(--font-mono); font-weight: 700; color: var(--status-confirmed); font-size: 0.8125rem;">
+                      ₹28,500.00
+                    </td>
+                    <td style="text-align: right; padding: 0.55rem 0.6rem;">
+                      <button class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="inspectTriageCase('DAY10-08-CROSS-MODAL')">View →</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Top Exposures Mini-Visual -->
+          <div class="card" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem;">
+              <div>
+                <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.4rem;">
+                  <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">bar_chart</span>
+                  <span>TOP EXPOSURE COUNTERPARTIES</span>
+                </h2>
+                <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                  Active counterparty obligations requiring financial oversight.
+                </p>
+              </div>
+              <span class="font-label-caps" style="font-size: 0.7rem; color: var(--on-surface-variant);">By Volume</span>
+            </div>
+
+            <div class="exposure-bar-list" id="cc-top-exposures-container">
+              <div class="exposure-bar-item">
+                <div class="exposure-bar-header">
+                  <span style="font-weight: 600; color: var(--on-surface);">Vendor A (Logistics &amp; Infra)</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">₹4,26,000.00</span>
+                </div>
+                <div class="exposure-bar-track">
+                  <div class="exposure-bar-fill" style="width: 85%; background-color: var(--primary);"></div>
+                </div>
+              </div>
+              <div class="exposure-bar-item">
+                <div class="exposure-bar-header">
+                  <span style="font-weight: 600; color: var(--on-surface);">Acme Global Infratech</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">₹2,80,000.00</span>
+                </div>
+                <div class="exposure-bar-track">
+                  <div class="exposure-bar-fill" style="width: 58%; background-color: var(--secondary);"></div>
+                </div>
+              </div>
+              <div class="exposure-bar-item">
+                <div class="exposure-bar-header">
+                  <span style="font-weight: 600; color: var(--on-surface);">Zenith Media House</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">₹1,85,000.00</span>
+                </div>
+                <div class="exposure-bar-track">
+                  <div class="exposure-bar-fill" style="width: 38%; background-color: var(--warning);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Section 5: How VERITY Investigates a Case (Plain-Language Executive Walkthrough) -->
+        <section class="card" id="cc-walkthrough-container" style="padding: 1.25rem 1.5rem; margin-bottom: 1.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">lightbulb</span>
+                <span>HOW VERITY RECONSTRUCTS FINANCIAL TRUTH</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Deterministic financial reconciliation explained in 6 simple steps for executives and controllers.
+              </p>
+            </div>
+            <span class="font-label-caps" style="font-size: 0.7rem; color: var(--on-surface-variant);">Explain Simply First &bull; Prove Deeply Second</span>
+          </div>
+
+          <div class="walkthrough-grid">
+            <div class="walkthrough-step-card">
+              <div class="walkthrough-num-badge">
+                <span class="material-symbols-outlined" style="font-size: 0.95rem;">folder</span>
+                <span>1. WE COLLECT</span>
+              </div>
+              <div style="font-weight: 700; font-size: 0.88rem; color: var(--on-surface);">Heterogeneous Evidence</div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">
+                Invoices, screenshots, WhatsApp messages, bank statements, and ERP ledger feeds.
+              </p>
+            </div>
+
+            <div class="walkthrough-step-card">
+              <div class="walkthrough-num-badge">
+                <span class="material-symbols-outlined" style="font-size: 0.95rem;">psychology</span>
+                <span>2. WE UNDERSTAND</span>
+              </div>
+              <div style="font-weight: 700; font-size: 0.88rem; color: var(--on-surface);">Multimodal Extraction</div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">
+                AI identifies claimed amounts, dates, references, counterparties, and settlement terms.
+              </p>
+            </div>
+
+            <div class="walkthrough-step-card">
+              <div class="walkthrough-num-badge">
+                <span class="material-symbols-outlined" style="font-size: 0.95rem;">fact_check</span>
+                <span>3. WE EXTRACT</span>
+              </div>
+              <div style="font-weight: 700; font-size: 0.88rem; color: var(--on-surface);">Strict Claim Separation</div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">
+                AI suggestions remain untrusted candidate claims until deterministically verified.
+              </p>
+            </div>
+
+            <div class="walkthrough-step-card">
+              <div class="walkthrough-num-badge">
+                <span class="material-symbols-outlined" style="font-size: 0.95rem;">sync_alt</span>
+                <span>4. WE MATCH</span>
+              </div>
+              <div style="font-weight: 700; font-size: 0.88rem; color: var(--on-surface);">Mathematical Ledger Match</div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">
+                Extracted facts are cross-referenced against authoritative bank UTRs and ledger entries.
+              </p>
+            </div>
+
+            <div class="walkthrough-step-card">
+              <div class="walkthrough-num-badge">
+                <span class="material-symbols-outlined" style="font-size: 0.95rem;">balance</span>
+                <span>5. WE DECIDE</span>
+              </div>
+              <div style="font-weight: 700; font-size: 0.88rem; color: var(--on-surface);">Deterministic Verdict</div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">
+                Zero hallucinations: mathematical reconciliation establishes CONFIRMED or CONTRADICTED.
+              </p>
+            </div>
+
+            <div class="walkthrough-step-card">
+              <div class="walkthrough-num-badge">
+                <span class="material-symbols-outlined" style="font-size: 0.95rem;">verified</span>
+                <span>6. YOU ACT</span>
+              </div>
+              <div style="font-weight: 700; font-size: 0.88rem; color: var(--on-surface);">Audit &amp; Remediation</div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.78rem;">
+                Review exceptions, approve balanced double-entry vouchers, and seal SHA-256 provenance.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 6: Golden Demo Scenarios (Controlled Forensic Demonstration Suite) -->
+        <section class="demo-bar" style="margin-bottom: 1.75rem;">
+          <div class="demo-bar-header">
+            <div>
+              <div class="demo-bar-title">
+                <span class="material-symbols-outlined" style="font-size: 1.1rem; color: var(--primary);">flag</span>
+                <span>GOLDEN DEMO CONTROLLER SCENARIOS</span>
+                <span class="badge badge-confirmed" style="margin-left: 0.5rem; font-size: 0.68rem;">Judge Walkthrough</span>
+              </div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.2rem;">
+                Deterministic benchmark cases demonstrating VERITY's evidence, reconciliation, controller, and audit workflow.
+              </p>
+            </div>
+            <span class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.75rem;">Click to execute full 8-stage pipeline</span>
+          </div>
+
+          <div class="golden-scenarios-grid" id="golden-demo-buttons-container">
+            <button class="golden-scenario-btn" data-scenario="DEMO-01" id="btn-demo-01">
+              <div class="sc-header"><span class="sc-badge">DEMO-01</span><strong>Clean 1:1 Settlement</strong></div>
+              <div class="sc-sub">₹35k Invoice + Bank Statement &rarr; CONFIRMED</div>
+            </button>
+            <button class="golden-scenario-btn" data-scenario="DEMO-02" id="btn-demo-02">
+              <div class="sc-header"><span class="sc-badge">DEMO-02</span><strong>Partial Settlement</strong></div>
+              <div class="sc-sub">₹12k Paid / ₹20k Obligation &rarr; ₹8k Shortfall</div>
+            </button>
+            <button class="golden-scenario-btn" data-scenario="DEMO-03" id="btn-demo-03">
+              <div class="sc-header"><span class="sc-badge">DEMO-03</span><strong>Amount Contradiction</strong></div>
+              <div class="sc-sub">₹18k Bank vs ₹20k Invoice &rarr; CONTRADICTED</div>
+            </button>
+            <button class="golden-scenario-btn" data-scenario="DEMO-04" id="btn-demo-04">
+              <div class="sc-header"><span class="sc-badge">DEMO-04</span><strong>Messy Multimodal</strong></div>
+              <div class="sc-sub">Hinglish WhatsApp + PDF + Screenshot</div>
+            </button>
+            <button class="golden-scenario-btn active-hero" data-scenario="DEMO-05" id="btn-demo-05">
+              <div class="sc-header"><span class="sc-badge badge-hero">HERO DEMO-05</span><strong style="color: var(--primary);">Counterparty UTR Reuse</strong></div>
+              <div class="sc-sub" style="color: var(--status-risk-violet); font-weight: 500;">Reused UTR Detected Across Cases!</div>
+            </button>
+          </div>
+        </section>
+
+        <!-- Quick Benchmark Suite Pills (Regression Compatibility) -->
+        <section class="demo-bar" style="margin-bottom: 1.75rem;">
+          <div class="demo-bar-header">
+            <span class="demo-bar-title" style="font-size: 0.8125rem;">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">bolt</span>
+              <span>10-Case Benchmark Suite</span>
+            </span>
+            <span class="font-body-sm" style="color: var(--on-surface-variant);">Regression Test Fixtures</span>
+          </div>
+          <div class="demo-pills" id="demo-pills-container">
+            <!-- Dynamically populated from /api/v1/demo-cases -->
+          </div>
+        </section>
+
+        <!-- Sections 7 & 8: Active Demonstration & Finance Controller Execution Story -->
+        <section class="card" id="panel-command-center" style="padding: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h3 class="font-headline-md" style="color: var(--primary); font-size: 1.05rem;">ACTIVE DEMONSTRATION &bull; EXECUTION STORY</h3>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); font-family: var(--font-mono);" id="cc-active-case-tag">Case: None Selected</p>
+            </div>
+            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+              <span class="badge badge-confirmed">✓ Zero Hallucination</span>
+              <span class="badge badge-confirmed">✓ Deterministic Truth</span>
+              <span class="badge badge-partial">✓ Human Approval Gate</span>
+              <span class="badge badge-unmatched">✓ SHA-256 Provenance</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- SCENE 1: Messy Input Evidence -->
+            <div class="card" style="background-color: var(--surface-container-low); padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="font-label-caps" style="color: var(--primary);">SCENE 1: Heterogeneous Evidence</span>
+                <span class="badge badge-unverifiable" id="cc-evidence-count-badge">0 Evidence Sources</span>
+              </div>
+              <div id="cc-evidence-list" class="scene-grid-2col" style="gap: 0.5rem;">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No evidence loaded yet. Select a scenario above.</p>
+              </div>
+            </div>
+
+            <!-- SCENE 2: AI Candidate Extraction vs Deterministic Financial Truth -->
+            <div class="card" style="background-color: var(--surface-container-low); padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="font-label-caps" style="color: var(--primary);">SCENE 2: AI Extraction vs Deterministic Truth</span>
+                <span class="badge badge-contradicted">Strict Separation</span>
+              </div>
+              <div class="scene-grid-2col">
+                <div class="card" style="border: 1px dashed var(--primary); background-color: var(--surface-container-lowest);">
+                  <div class="font-body-sm" style="font-weight: 600; color: var(--primary); margin-bottom: 0.25rem;">🤖 AI VLM Extraction (Candidate Claims)</div>
+                  <div class="font-body-sm" style="color: var(--on-surface-variant); margin-bottom: 0.5rem;">AI candidate extractions. Never treated as authoritative truth.</div>
+                  <div id="cc-ai-claims-container" class="font-data-sm">
+                    <p class="font-body-sm" style="color: var(--on-surface-variant);">Awaiting case execution...</p>
+                  </div>
+                </div>
+                <div class="card" style="border: 1px solid var(--success); background-color: var(--status-confirmed-bg);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                    <div class="font-body-sm" style="font-weight: 600; color: var(--success);">⚖️ Deterministic Truth (Reconciliation)</div>
+                    <span id="cc-truth-status-tag" class="badge badge-confirmed">CONFIRMED</span>
+                  </div>
+                  <div class="font-body-sm" style="color: var(--on-surface-variant); margin-bottom: 0.5rem;">Deterministic invariants verified.</div>
+                  <div id="cc-truth-accounting-summary" class="font-body-sm">
+                    <p class="font-body-sm" style="color: var(--on-surface-variant);">Awaiting case execution...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCENE 3: Institutional Counterparty Memory -->
+            <div class="card" id="cc-scene-memory" style="background-color: var(--surface-container-low); padding: 1rem; border-left: 4px solid var(--status-risk-violet);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="font-label-caps" style="color: var(--tertiary-container);">SCENE 3: Institutional Memory &amp; Counterparty Dossier</span>
+                <span class="badge badge-risk-violet">Counterparty Intelligence</span>
+              </div>
+              <div id="cc-memory-alert-box" style="margin-top: 0.5rem; display: none;"></div>
+              <div class="scene-grid-4col" style="margin-top: 0.5rem;">
+                <div class="card" style="padding: 0.75rem;"><div class="font-body-sm" style="color: var(--on-surface-variant);">Entity Name</div><div class="font-body-md" id="cc-cp-name" style="font-weight: 600;">-</div></div>
+                <div class="card" style="padding: 0.75rem;"><div class="font-body-sm" style="color: var(--on-surface-variant);">Historical Cases</div><div class="font-data-lg" id="cc-cp-cases" style="color: var(--primary);">0</div></div>
+                <div class="card" style="padding: 0.75rem;"><div class="font-body-sm" style="color: var(--on-surface-variant);">Lifetime Volume</div><div class="font-data-lg" id="cc-cp-volume">₹0.00</div></div>
+                <div class="card" style="padding: 0.75rem;"><div class="font-body-sm" style="color: var(--on-surface-variant);">Historical Risk</div><div class="font-body-md" id="cc-cp-risk" style="font-weight: 600; color: var(--status-risk-violet);">LOW</div></div>
+              </div>
+            </div>
+
+            <!-- SCENE 4: AI Controller Decision -->
+            <div class="card" style="background-color: var(--surface-container-low); padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="font-label-caps" style="color: var(--primary);">SCENE 4: AI Controller Decision &amp; Policy Directive</span>
+                <span id="cc-controller-risk-badge" class="badge badge-partial">RISK: EVALUATING</span>
+              </div>
+              <div id="cc-controller-content" class="font-body-sm" style="margin-top: 0.5rem;">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">Awaiting controller analysis...</p>
+              </div>
+            </div>
+
+            <!-- SCENES 5 & 6: Human Review & Remediation -->
+            <div class="card" style="background-color: var(--surface-container-low); padding: 1rem; border-left: 4px solid var(--warning);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="font-label-caps" style="color: var(--warning);">SCENES 5 &amp; 6: Human Review Separation &amp; Remediation</span>
+                <span class="badge badge-partial">Human in the Loop</span>
+              </div>
+              <div class="scene-grid-2col" style="margin-top: 0.5rem;">
+                <div class="card">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.35rem;">
+                    <strong class="font-body-sm">Remediation Proposal</strong>
+                    <span id="cc-action-status-pill" class="badge badge-partial">PENDING APPROVAL</span>
+                  </div>
+                  <div id="cc-remediation-preview" class="font-body-sm" style="margin-bottom: 0.75rem;">
+                    <p class="font-body-sm" style="color: var(--on-surface-variant);">No action proposed yet.</p>
+                  </div>
+                  <div id="cc-remediation-buttons" style="display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap;"></div>
+                </div>
+                <div class="card">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.35rem;">
+                    <strong class="font-body-sm">Draft Journal Voucher</strong>
+                    <span id="cc-journal-balance-tag" class="badge badge-confirmed">BALANCED (DR = CR)</span>
+                  </div>
+                  <div id="cc-journal-table-container" class="font-data-sm">
+                    <p class="font-body-sm" style="color: var(--on-surface-variant);">Awaiting journal generation...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCENE 7: Audit Provenance Timeline -->
+            <div class="card" style="background-color: var(--surface-container-low); padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="font-label-caps" style="color: var(--primary);">SCENE 7: Cryptographic SHA-256 Audit Trail</span>
+                <span class="badge badge-confirmed">✓ Chain Verified</span>
+              </div>
+              <div id="cc-audit-timeline-container" class="font-data-sm" style="margin-top: 0.5rem;">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">Awaiting audit event stream...</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <!-- Upload Tab -->
-      <div class="tab-pane active" id="tab-upload">
-        <div class="dropzone" id="file-dropzone">
-          <p style="font-weight: 600; font-size: 1.05rem; margin-bottom: 0.25rem;">Drag & drop evidence files or click to browse</p>
-          <p style="color: var(--text-muted); font-size: 0.82rem;">Supports Bank CSV, Invoices (PDF), Payment Screenshots (PNG/JPG), and Text exports</p>
-          <input type="file" id="file-input" multiple style="display: none;" accept=".csv,.pdf,.png,.jpg,.jpeg,.txt">
-          <div id="file-list-preview" style="margin-top: 1rem; font-size: 0.85rem; color: var(--accent-secondary);"></div>
-        </div>
-      </div>
 
-      <!-- Text / WhatsApp Tab -->
-      <div class="tab-pane" id="tab-text">
-        <textarea class="textarea-field" id="text-evidence-input" placeholder="Paste unformatted financial text or WhatsApp chat export, e.g.:
+      <!-- =====================================================================
+           SECTION: CASE INVESTIGATION FLAGSHIP WORKSPACE (UX PASS 2)
+           ===================================================================== -->
+      <div id="view-cases" class="app-view">
+
+        <!-- LEVEL 1: WHAT HAPPENED? — Case Header & Storytelling Banner -->
+        <section class="case-story-header">
+          <div class="case-story-meta-row">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Case Investigation</span>
+              <span class="case-id-badge" id="hero-title">Select or submit a case</span>
+              <span class="badge badge-confirmed" id="hero-status-badge">READY</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button class="btn-secondary" id="btn-export-report-top" style="font-size: 0.8125rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">download</span>
+                <span>Export Report</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Plain-Language Outcome & Summary -->
+          <div>
+            <p class="font-body-md" style="color: var(--on-surface); font-size: 0.9375rem; line-height: 1.5;" id="hero-summary">
+              VERITY reconciles multimodal evidence to reconstruct verified financial truth using deterministic invariants.
+            </p>
+          </div>
+        </section>
+
+        <!-- LEVEL 1: FINANCIAL TRUTH HERO COMPOSITION -->
+        <section class="case-truth-hero-grid">
+
+          <!-- Card 1: FINANCIAL TRUTH RESULT (Visually Dominant) -->
+          <div class="card case-truth-main-card" id="truth-hero-card">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <div>
+                  <span class="font-label-caps" style="color: var(--on-surface-variant);">FINANCIAL TRUTH (DETERMINISTIC)</span>
+                  <div style="font-size: 0.8125rem; font-weight: 700; color: var(--success); margin-top: 0.15rem;" id="case-truth-verdict-label">MATCHED</div>
+                </div>
+                <span class="badge badge-confirmed" id="hero-review-badge">✓ NO REVIEW REQUIRED</span>
+              </div>
+
+              <div class="font-data-lg" id="metric-matched" style="font-size: 2.25rem; font-weight: 800; color: var(--success); margin: 0.25rem 0 0.5rem 0;">
+                ₹0.00
+              </div>
+
+              <!-- Confidence Progress Bar -->
+              <div style="margin: 0.75rem 0 0.25rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--on-surface-variant); margin-bottom: 0.25rem;">
+                  <span>Reconciliation Confidence</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--on-surface);" id="hero-confidence-val">100%</span>
+                </div>
+                <div style="width: 100%; height: 0.4rem; background-color: var(--surface-container-high); border-radius: var(--radius-full); overflow: hidden;">
+                  <div id="hero-confidence-bar" style="width: 100%; height: 100%; background-color: var(--success); transition: width 0.3s ease;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Next Action Guidance -->
+            <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--outline-variant); font-size: 0.8125rem; color: var(--on-surface-variant);" id="case-next-action-container">
+              <strong style="color: var(--on-surface);">Next Action:</strong>
+              <span id="case-next-action-text">No action required. The reconciliation is complete.</span>
+            </div>
+          </div>
+
+          <!-- Card 2: BALANCES & INVARIANTS -->
+          <div class="card case-truth-side-card">
+            <div>
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">BALANCES &amp; INVARIANTS</span>
+              <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.8125rem;">
+                  <span style="color: var(--on-surface-variant);">Expected Claim:</span>
+                  <span class="font-data-sm" id="metric-claimed" style="font-weight: 700; color: var(--on-surface);">₹0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.8125rem;">
+                  <span style="color: var(--on-surface-variant);">Outstanding Bal:</span>
+                  <span class="font-data-sm" id="metric-outstanding" style="font-weight: 700; color: var(--warning);">₹0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.8125rem;">
+                  <span style="color: var(--on-surface-variant);">Discrepancies:</span>
+                  <span class="font-data-sm" id="metric-discrepancies" style="font-weight: 700; color: var(--error);">0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.8125rem;">
+                  <span style="color: var(--on-surface-variant);">Disputed Vol:</span>
+                  <span class="font-data-sm" id="cp-disputed-exposure" style="font-weight: 700; color: var(--error);">₹0.00</span>
+                </div>
+              </div>
+            </div>
+            <div class="font-body-sm" style="font-size: 0.75rem; color: var(--on-surface-variant); padding-top: 0.5rem; border-top: 1px solid var(--outline-variant);">
+              Deterministic Double-Entry Invariants
+            </div>
+          </div>
+
+          <!-- Card 3: CONTROLLER RISK & COUNTERPARTY -->
+          <div class="card case-truth-side-card" style="border-left: 4px solid var(--status-risk-violet);">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="font-label-caps" style="color: var(--on-surface-variant);">CONTROLLER RISK</span>
+                <span class="badge badge-risk-violet" id="controller-risk-badge">LOW</span>
+              </div>
+              <div class="font-headline-md" style="font-size: 1.1rem; color: var(--on-surface); font-weight: 700;" id="cp-canonical-name">
+                First-Time Entity
+              </div>
+              <div style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.8125rem;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--on-surface-variant);">Historical Cases:</span>
+                  <span class="font-data-sm" id="cp-case-count" style="font-weight: 600;">0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--on-surface-variant);">Lifetime Volume:</span>
+                  <span class="font-data-sm" id="cp-total-exposure" style="font-weight: 600;">₹0.00</span>
+                </div>
+              </div>
+            </div>
+            <div class="font-body-sm" style="font-size: 0.75rem; color: var(--status-risk-violet); padding-top: 0.5rem; border-top: 1px solid var(--outline-variant);">
+              Institutional Counterparty Memory
+            </div>
+          </div>
+
+        </section>
+
+        <!-- LEVEL 2: GRAPHIC 1 — RECONCILIATION FLOW GRAPHIC -->
+        <section class="card" id="case-reconciliation-flow" style="padding: 1.25rem 1.5rem; margin-top: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">conversion_path</span>
+                <span>RECONCILIATION FLOW</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                End-to-end evidence corroboration across the 6 financial milestones.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Deterministic Pipeline</span>
+          </div>
+
+          <div class="case-flow-container">
+            <div class="case-flow-node success" id="flow-node-ev">
+              <div class="case-flow-circle"><span class="material-symbols-outlined" style="font-size: 1.2rem;">folder_open</span></div>
+              <div class="case-flow-label">1. Evidence</div>
+              <div class="case-flow-val" id="flow-ev-val">₹0.00</div>
+            </div>
+            <span class="material-symbols-outlined case-flow-arrow">arrow_forward</span>
+
+            <div class="case-flow-node success" id="flow-node-facts">
+              <div class="case-flow-circle"><span class="material-symbols-outlined" style="font-size: 1.2rem;">fact_check</span></div>
+              <div class="case-flow-label">2. Extracted</div>
+              <div class="case-flow-val" id="flow-facts-status">Corroborated</div>
+            </div>
+            <span class="material-symbols-outlined case-flow-arrow">arrow_forward</span>
+
+            <div class="case-flow-node success" id="flow-node-txn">
+              <div class="case-flow-circle"><span class="material-symbols-outlined" style="font-size: 1.2rem;">receipt_long</span></div>
+              <div class="case-flow-label">3. Transaction</div>
+              <div class="case-flow-val" id="flow-txn-val">₹0.00</div>
+            </div>
+            <span class="material-symbols-outlined case-flow-arrow">arrow_forward</span>
+
+            <div class="case-flow-node success" id="flow-node-ledger">
+              <div class="case-flow-circle"><span class="material-symbols-outlined" style="font-size: 1.2rem;">account_balance</span></div>
+              <div class="case-flow-label">4. Ledger</div>
+              <div class="case-flow-val" id="flow-ledger-status">Matched</div>
+            </div>
+            <span class="material-symbols-outlined case-flow-arrow">arrow_forward</span>
+
+            <div class="case-flow-node success" id="flow-node-recon">
+              <div class="case-flow-circle"><span class="material-symbols-outlined" style="font-size: 1.2rem;">balance</span></div>
+              <div class="case-flow-label">5. Reconciled</div>
+              <div class="case-flow-val" id="flow-recon-val">₹0.00</div>
+            </div>
+            <span class="material-symbols-outlined case-flow-arrow">arrow_forward</span>
+
+            <div class="case-flow-node success" id="flow-node-ctrl">
+              <div class="case-flow-circle"><span class="material-symbols-outlined" style="font-size: 1.2rem;">task_alt</span></div>
+              <div class="case-flow-label">6. Controller</div>
+              <div class="case-flow-val" id="flow-ctrl-status">Confirmed</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LEVEL 2: GRAPHIC 2 — EVIDENCE ↔ LEDGER MATCH COMPARISON -->
+        <section class="card" id="case-evidence-ledger-match" style="padding: 1.25rem 1.5rem; margin-top: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">compare_arrows</span>
+                <span>EVIDENCE ↔ LEDGER MATCH</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Direct cross-examination of claimed multimodal proof against authoritative banking records.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Symmetrical Corroboration</span>
+          </div>
+
+          <div class="match-comparison-wrapper">
+            <!-- Left: Extracted Evidence -->
+            <div class="match-pane-box">
+              <div class="match-pane-header">
+                <span style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.35rem; font-size: 0.8125rem;">
+                  <span class="material-symbols-outlined" style="font-size: 1rem;">description</span>
+                  <span>SUBMITTED EVIDENCE</span>
+                </span>
+                <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Source Proof</span>
+              </div>
+              <div id="recon-evidence-preview" style="min-height: 110px; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div class="chat-bubble-user">
+                  <div class="font-body-sm">Submitted evidence documents and unstructured communication exports will display here.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Center: Match Verdict Pill -->
+            <div class="match-center-badge-column">
+              <div class="match-verdict-pill" id="match-verdict-center-pill">
+                <span class="material-symbols-outlined" style="font-size: 1.35rem; margin-bottom: 0.15rem;">check_circle</span>
+                <span id="match-verdict-text">✓ MATCHED</span>
+              </div>
+            </div>
+
+            <!-- Right: Core Ledger -->
+            <div class="match-pane-box">
+              <div class="match-pane-header">
+                <span style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.35rem; font-size: 0.8125rem;">
+                  <span class="material-symbols-outlined" style="font-size: 1rem;">account_balance</span>
+                  <span>CORE LEDGER / BANK</span>
+                </span>
+                <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">Authoritative Record</span>
+              </div>
+              <div id="recon-ledger-preview" style="min-height: 110px; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.75rem;">
+                  <thead>
+                    <tr style="background-color: var(--surface-container); border-bottom: 1px solid var(--outline-variant); color: var(--on-surface-variant); text-align: left;">
+                      <th style="padding: 0.4rem 0.5rem;">DATE</th>
+                      <th style="padding: 0.4rem 0.5rem;">NARRATION / REF</th>
+                      <th style="padding: 0.4rem 0.5rem; text-align: right;">CREDIT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="border-bottom: 1px solid var(--outline-variant);">
+                      <td style="padding: 0.5rem;">--</td>
+                      <td style="padding: 0.5rem;">Awaiting case data...</td>
+                      <td style="padding: 0.5rem; text-align: right;">₹0.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Matching Factors Underneath -->
+          <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--outline-variant);" id="panel-factors">
+            <div style="font-weight: 700; font-size: 0.75rem; color: var(--on-surface-variant); text-transform: uppercase; margin-bottom: 0.4rem;">
+              Verified Matching Factors
+            </div>
+            <div id="factors-list-container" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+              <span class="tag-badge" style="background: var(--status-confirmed-bg); color: var(--status-confirmed); border-color: var(--status-confirmed-border);">✓ Exact Amount Match</span>
+              <span class="tag-badge" style="background: var(--status-confirmed-bg); color: var(--status-confirmed); border-color: var(--status-confirmed-border);">✓ Reference Corroborated</span>
+              <span class="tag-badge" style="background: var(--status-confirmed-bg); color: var(--status-confirmed); border-color: var(--status-confirmed-border);">✓ Counterparty Verified</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- LEVEL 2: "WHY VERITY BELIEVES THIS" EXPLANATION -->
+        <section class="card" id="case-why-verity-believes" style="padding: 1.25rem 1.5rem; margin-top: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
+            <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">lightbulb</span>
+              <span>WHY VERITY BELIEVES THIS</span>
+            </h2>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Forensic Rationale</span>
+          </div>
+
+          <div class="why-believes-grid" id="why-believes-container">
+            <div class="why-believes-item">
+              <span class="material-symbols-outlined">check_circle</span>
+              <div>
+                <strong>Amount Matches Exactly</strong>
+                <div style="color: var(--on-surface-variant); font-size: 0.75rem;" id="why-amt-detail">Evidence amount matches the core ledger entry with ₹0.00 variance.</div>
+              </div>
+            </div>
+            <div class="why-believes-item">
+              <span class="material-symbols-outlined">check_circle</span>
+              <div>
+                <strong>Reference Corroborated</strong>
+                <div style="color: var(--on-surface-variant); font-size: 0.75rem;" id="why-ref-detail">Banking UTR and invoice reference confirmed across data sources.</div>
+              </div>
+            </div>
+            <div class="why-believes-item">
+              <span class="material-symbols-outlined">check_circle</span>
+              <div>
+                <strong>Counterparty Resolved</strong>
+                <div style="color: var(--on-surface-variant); font-size: 0.75rem;" id="why-cp-detail">Institutional memory verified canonical entity profile.</div>
+              </div>
+            </div>
+            <div class="why-believes-item">
+              <span class="material-symbols-outlined">check_circle</span>
+              <div>
+                <strong>Zero Conflicting Claims</strong>
+                <div style="color: var(--on-surface-variant); font-size: 0.75rem;">No conflicting payments, duplicate UTRs, or contested claims detected.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LEVEL 2: CONTRADICTIONS SECTION -->
+        <section id="panel-contradictions" style="margin-top: 1.5rem;">
+          <div id="contradictions-list-container">
+            <div class="clean-evidence-banner">
+              <span class="material-symbols-outlined" style="color: var(--status-confirmed); font-size: 1.25rem;">verified</span>
+              <span>✓ NO CONFLICTING EVIDENCE &bull; All financial invariants verified deterministically.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- LEVEL 2: GRAPHIC 3 — 8-STAGE INVESTIGATION TELEMETRY TRAIL -->
+        <section class="card" style="padding: 1.25rem 1.5rem; margin-top: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.45rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">timeline</span>
+              <span class="font-label-caps" style="color: var(--primary);">8-Stage Forensic Pipeline Telemetry</span>
+            </div>
+            <span id="total-latency-tag" class="font-data-sm" style="color: var(--primary); font-weight: 600;">Total Latency: -- ms</span>
+          </div>
+          <div class="stage-grid" id="stage-grid">
+            <div class="stage-box" id="stage-INGESTION"><div class="stage-num">01</div><div class="stage-name">Ingestion</div><div class="stage-metrics">--</div></div>
+            <div class="stage-box" id="stage-EXTRACTION"><div class="stage-num">02</div><div class="stage-name">Extraction</div><div class="stage-metrics">--</div></div>
+            <div class="stage-box" id="stage-ENTITY_RESOLUTION"><div class="stage-num">03</div><div class="stage-name">Entities</div><div class="stage-metrics">--</div></div>
+            <div class="stage-box" id="stage-TRANSACTION_MATCHING"><div class="stage-num">04</div><div class="stage-name">Matching</div><div class="stage-metrics">--</div></div>
+            <div class="stage-box" id="stage-DEDUPLICATION"><div class="stage-num">05</div><div class="stage-name">Dedup</div><div class="stage-metrics">--</div></div>
+            <div class="stage-box" id="stage-CONTRADICTION_DETECTION"><div class="stage-num">06</div><div class="stage-name">Conflicts</div><div class="stage-metrics">--</div></div>
+            <div class="stage-box" id="stage-RECONCILIATION"><div class="stage-num">07</div><div class="stage-name">Reconcile</div><div class="stage-metrics">--</div></div>
+            <div class="stage-box" id="stage-REPORTING"><div class="stage-num">08</div><div class="stage-name">Report</div><div class="stage-metrics">--</div></div>
+          </div>
+        </section>
+
+        <!-- LEVEL 3: PROGRESSIVE DISCLOSURE — DEEPER FORENSIC DETAILS & INPUT CONTROLS -->
+        <section style="margin-top: 1.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem;">
+            <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">science</span>
+              <span>DEEP FORENSIC DETAILS &amp; CONTROLS</span>
+            </h2>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Expandable Technical Diagnostics</span>
+          </div>
+
+          <!-- Accordion 1: Matching Topology & Actions -->
+          <details class="disclosure-accordion">
+            <summary class="disclosure-summary">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.1rem; color: var(--primary);">hub</span>
+                <span>Matching Topology &amp; Recommended Actions</span>
+              </span>
+              <span class="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div class="disclosure-content">
+              <div id="panel-matching" style="margin-bottom: 1.25rem;">
+                <div class="font-label-caps" style="color: var(--on-surface-variant); margin-bottom: 0.5rem;">Topology Graph &amp; Node Details</div>
+                <div id="matching-details-container" class="font-data-sm">
+                  <p class="font-body-sm" style="color: var(--on-surface-variant);">No active case matching topology loaded.</p>
+                </div>
+              </div>
+              <div id="panel-actions">
+                <div class="font-label-caps" style="color: var(--on-surface-variant); margin-bottom: 0.5rem;">Controller Recommended Actions</div>
+                <div id="actions-list-container" class="font-body-sm">
+                  <p class="font-body-sm" style="color: var(--on-surface-variant);">No actions required for confirmed cases.</p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Accordion 2: Ingest New Evidence / Case Processing -->
+          <details class="disclosure-accordion">
+            <summary class="disclosure-summary">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.1rem; color: var(--primary);">upload_file</span>
+                <span>Ingest New Evidence / Custom Case Input</span>
+              </span>
+              <span class="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div class="disclosure-content input-section">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div class="tabs-header" style="display: flex; gap: 0.5rem;">
+                  <button class="tab-btn active btn-secondary" data-tab="tab-upload" style="font-size: 0.8125rem;">Upload Files</button>
+                  <button class="tab-btn btn-secondary" data-tab="tab-text" style="font-size: 0.8125rem;">Paste WhatsApp / Text</button>
+                  <button class="tab-btn btn-secondary" data-tab="tab-json" style="font-size: 0.8125rem;">JSON Case</button>
+                </div>
+                <button class="btn-primary" id="btn-process">
+                  <span id="btn-spinner" style="display: none;">⏳</span>
+                  <span id="btn-text">Reconstruct Financial Truth</span>
+                </button>
+              </div>
+
+              <!-- Upload Dropzone Tab -->
+              <div class="tab-pane active" id="tab-upload">
+                <div class="dropzone" id="file-dropzone">
+                  <p class="font-headline-md" style="font-size: 1rem; color: var(--on-surface); margin-bottom: 0.25rem;">
+                    Drag & drop evidence files or click to browse
+                  </p>
+                  <p class="font-body-sm" style="color: var(--on-surface-variant);">
+                    Supports Bank CSVs, PDF Invoices, Payment Screenshots (PNG/JPG), and Text exports
+                  </p>
+                  <input type="file" id="file-input" multiple style="display: none;" accept=".csv,.pdf,.png,.jpg,.jpeg,.txt">
+                  <div id="file-list-preview" class="font-data-sm" style="margin-top: 0.75rem; color: var(--primary);"></div>
+                </div>
+              </div>
+
+              <!-- Text / WhatsApp Tab -->
+              <div class="tab-pane" id="tab-text" style="display: none;">
+                <textarea class="textarea-field" id="text-evidence-input" placeholder="Paste unformatted financial text or WhatsApp chat export, e.g.:
 [23/08/26, 2:30 PM] Rahul Kumar: Bhai ₹35,000 bhej diye via UPI ref 408219381920"></textarea>
-      </div>
+              </div>
 
-      <!-- JSON Case Tab -->
-      <div class="tab-pane" id="tab-json">
-        <textarea class="textarea-field" id="json-case-input" placeholder='{
+              <!-- JSON Case Tab -->
+              <div class="tab-pane" id="tab-json" style="display: none;">
+                <textarea class="textarea-field" id="json-case-input" placeholder='{
   "case_id": "CASE-CUSTOM-001",
   "transactions": [{"amount": 35000, "direction": "CREDIT", "bank_reference": "408219381920"}]
 }'></textarea>
+              </div>
+            </div>
+          </details>
+
+          <!-- Accordion 3: Full Portfolio Diagnostics Queue -->
+          <details class="disclosure-accordion">
+            <summary class="disclosure-summary">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.1rem; color: var(--primary);">inventory_2</span>
+                <span>Case Portfolio Diagnostics &amp; Workload</span>
+              </span>
+              <span class="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div class="disclosure-content" id="panel-portfolio">
+              <div class="port-metrics-grid" style="margin-bottom: 1rem;">
+                <div class="card" style="padding: 0.6rem;"><div class="font-body-sm">Total Cases</div><div class="font-data-lg" id="port-total-cases">0</div></div>
+                <div class="card" style="padding: 0.6rem;"><div class="font-body-sm">Critical Risk</div><div class="font-data-lg" id="port-critical-cases" style="color: var(--error);">0</div></div>
+                <div class="card" style="padding: 0.6rem;"><div class="font-body-sm">High Risk</div><div class="font-data-lg" id="port-high-cases" style="color: var(--warning);">0</div></div>
+                <div class="card" style="padding: 0.6rem;"><div class="font-body-sm">In Review</div><div class="font-data-lg" id="port-review-cases">0</div></div>
+                <div class="card" style="padding: 0.6rem;"><div class="font-body-sm">Overdue SLA</div><div class="font-data-lg" id="port-overdue-cases" style="color: var(--error);">0</div></div>
+                <div class="card" style="padding: 0.6rem;"><div class="font-body-sm">Total Exposure</div><div class="font-data-lg" id="port-total-exp">₹0.00</div></div>
+                <div class="card" style="padding: 0.6rem;"><div class="font-body-sm">Disputed Exposure</div><div class="font-data-lg" id="port-disputed-exp" style="color: var(--error);">₹0.00</div></div>
+                <div class="card" style="padding: 0.6rem;"><div class="font-body-sm">Unresolved Bal.</div><div class="font-data-lg" id="port-unresolved-exp" style="color: var(--warning);">₹0.00</div></div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                  <button class="btn-secondary port-filter-btn active" data-filter="all" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">All Cases</button>
+                  <button class="btn-secondary port-filter-btn" data-filter="review" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Review Queue</button>
+                  <button class="btn-secondary port-filter-btn" data-filter="high_risk" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Critical / High</button>
+                  <button class="btn-secondary port-filter-btn" data-filter="overdue" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Overdue</button>
+                  <button class="btn-secondary port-filter-btn" data-filter="assigned" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Assigned</button>
+                  <button class="btn-secondary port-filter-btn" data-filter="unassigned" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Unassigned</button>
+                </div>
+                <div style="display: flex; gap: 0.4rem; max-width: 300px; flex: 1;">
+                  <input type="text" class="input-field" id="port-search-input" placeholder="Search case, entity, UTR..." style="padding: 0.35rem 0.5rem; font-size: 0.75rem;">
+                  <button class="btn-secondary" id="btn-refresh-portfolio" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;">⟳</button>
+                </div>
+              </div>
+
+              <div style="overflow-x: auto; border: 1px solid var(--outline-variant); border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+                <table class="confirmed-strip-table">
+                  <thead>
+                    <tr>
+                      <th>Case ID</th>
+                      <th>Risk</th>
+                      <th>Priority</th>
+                      <th>Exposure</th>
+                      <th>Disputed</th>
+                      <th>Reviewer</th>
+                      <th>Status</th>
+                      <th style="text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="portfolio-table-body">
+                    <tr><td colspan="8" style="padding: 1.5rem; text-align: center; color: var(--on-surface-variant);">Loading cases…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="margin-top: 1rem;">
+                <div class="font-label-caps" style="color: var(--on-surface-variant); margin-bottom: 0.5rem;">Reviewer Workload Distribution</div>
+                <div style="overflow-x: auto; border: 1px solid var(--outline-variant); border-radius: var(--radius-md);">
+                  <table class="confirmed-strip-table">
+                    <thead>
+                      <tr>
+                        <th>Reviewer</th>
+                        <th>Assigned</th>
+                        <th>Open</th>
+                        <th>Critical</th>
+                        <th>Overdue</th>
+                        <th>Exposure</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="portfolio-workload-body">
+                      <tr><td colspan="7" style="padding: 1rem; text-align: center; color: var(--on-surface-variant);">Loading workload…</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </details>
+
+        </section>
       </div>
 
-      <div class="action-bar">
-        <button class="btn-primary" id="btn-process">
-          <span id="btn-spinner" style="display: none;">⏳</span>
-          <span id="btn-text">Reconstruct Financial Truth</span>
+
+
+      <!-- =====================================================================
+           SECTION: EVIDENCE WORKSPACE (UX PASS 3 / B3)
+           ===================================================================== -->
+      <div id="view-evidence" class="app-view">
+
+        <!-- Evidence Header -->
+        <section class="case-story-header" style="margin-bottom: 1.25rem;">
+          <div class="case-story-meta-row">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Evidence Intelligence</span>
+              <span class="case-id-badge" id="ev-header-title">Multimodal Evidence Ingestion</span>
+              <span id="ev-active-case-tag" class="badge badge-confirmed">No Active Case</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn-secondary" onclick="setWorkspace('cases')" style="font-size: 0.8125rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_back</span>
+                <span>Return to Investigation</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="font-body-md" style="color: var(--on-surface); font-size: 0.9375rem; line-height: 1.5;">
+              Multimodal source documents, parsed claims, raw snippets, and cryptographic provenance digests.
+            </p>
+          </div>
+        </section>
+
+        <!-- Evidence Summary Counters Bar -->
+        <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div class="card" style="padding: 0.85rem;">
+            <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Total Sources</div>
+            <div class="font-data-lg" id="ev-stat-sources" style="margin-top: 0.2rem; font-size: 1.5rem; font-weight: 700; color: var(--primary);">0</div>
+          </div>
+          <div class="card" style="padding: 0.85rem;">
+            <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Verified Claims</div>
+            <div class="font-data-lg" id="ev-stat-verified" style="margin-top: 0.2rem; font-size: 1.5rem; font-weight: 700; color: var(--success);">0</div>
+          </div>
+          <div class="card" style="padding: 0.85rem;">
+            <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Needs Attention</div>
+            <div class="font-data-lg" id="ev-stat-attention" style="margin-top: 0.2rem; font-size: 1.5rem; font-weight: 700; color: var(--warning);">0</div>
+          </div>
+        </section>
+
+        <!-- Graphic 1: Evidence Extraction Flow Graphic -->
+        <section class="card" id="evidence-flow-graphic-card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">account_tree</span>
+                <span>EVIDENCE EXTRACTION FLOW</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Automated multi-modal parsing from source artifact to verified deterministic fact.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Extraction Pipeline</span>
+          </div>
+
+          <div class="evidence-extraction-flow" id="ev-extraction-flow">
+            <div class="flow-step-box">
+              <div class="font-label-caps" style="color: var(--primary); font-size: 0.68rem;">1. SUBMITTED SOURCE</div>
+              <strong id="ev-flow-source-name" style="font-size: 0.875rem; color: var(--on-surface);">Case Evidence</strong>
+              <span id="ev-flow-modality" class="font-data-sm" style="color: var(--on-surface-variant); font-size: 0.72rem;">DOCUMENT / CHAT</span>
+            </div>
+            <span class="material-symbols-outlined flow-arrow" style="color: var(--outline-variant); font-size: 1.5rem;">arrow_forward</span>
+
+            <div class="flow-step-box" style="border-left: 3px solid var(--primary);">
+              <div class="font-label-caps" style="color: var(--primary); font-size: 0.68rem;">2. EXTRACTED FACTS</div>
+              <div id="ev-flow-facts-list" style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.2rem;">
+                <div><span style="color: var(--on-surface-variant);">Claimed:</span> <strong id="ev-flow-amt" style="font-family: var(--font-mono); color: var(--success);">₹0.00</strong></div>
+                <div><span style="color: var(--on-surface-variant);">Reference:</span> <span id="ev-flow-ref" style="font-family: var(--font-mono); font-weight: 600;">--</span></div>
+              </div>
+            </div>
+            <span class="material-symbols-outlined flow-arrow" style="color: var(--outline-variant); font-size: 1.5rem;">arrow_forward</span>
+
+            <div class="flow-step-box" id="ev-flow-verdict-box" style="border-left: 3px solid var(--success); text-align: center;">
+              <div class="font-label-caps" style="color: var(--success); font-size: 0.68rem;">3. STATUS</div>
+              <div id="ev-flow-verdict-text" style="font-weight: 800; font-size: 0.875rem; color: var(--success); margin-top: 0.2rem;">✓ VERIFIED</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Evidence Items List Panel -->
+        <section class="card" style="padding: 1.25rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 class="font-label-caps" style="color: var(--primary);">Registered Case Evidence Items</h3>
+            <span class="badge badge-confirmed">Multi-Modal NER</span>
+          </div>
+          <div class="detail-panel active" id="panel-evidence">
+            <div class="evidence-list" id="evidence-list-container">
+              <p class="font-body-sm" style="color: var(--on-surface-variant);">No evidence items loaded for the active case. Run a scenario or drop files to inspect.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+
+      <!-- =====================================================================
+           SECTION: COUNTERPARTY MEMORY WORKSPACE (UX PASS 3 / B3)
+           ===================================================================== -->
+      <div id="view-counterparty" class="app-view">
+
+        <!-- Counterparty Header -->
+        <section class="case-story-header" style="margin-bottom: 1.25rem;">
+          <div class="case-story-meta-row">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Counterparty Intelligence</span>
+              <span class="case-id-badge" id="cp-hero-canonical-name">Counterparty Memory &amp; Dossier</span>
+              <span id="cp-active-case-tag" class="badge badge-risk-violet">No Active Case</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn-secondary" onclick="setWorkspace('cases')" style="font-size: 0.8125rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_back</span>
+                <span>Return to Investigation</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="font-body-md" style="color: var(--on-surface); font-size: 0.9375rem; line-height: 1.5;">
+              Institutional memory, lifetime exposure, recurring discrepancy patterns, and cross-case reference reuse tracking.
+            </p>
+          </div>
+        </section>
+
+        <!-- Counterparty Identity & Risk Summary Matrix -->
+        <section class="cp-hero-grid" style="margin-bottom: 1.25rem;">
+
+          <!-- Identity Card -->
+          <div class="card case-truth-main-card" style="border-left: 5px solid var(--status-risk-violet);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <div>
+                <span class="font-label-caps" style="color: var(--on-surface-variant);">ENTITY PROFILE</span>
+                <div class="font-headline-md" id="cp-profile-name" style="font-size: 1.35rem; font-weight: 800; color: var(--on-surface); margin-top: 0.2rem;">
+                  First-Time Counterparty
+                </div>
+              </div>
+              <span class="badge badge-risk-violet" id="cp-hero-risk-badge">LOW RISK</span>
+            </div>
+
+            <div id="cp-health-summary-box" style="margin: 0.75rem 0; padding: 0.75rem; background: var(--surface-container-lowest); border-radius: var(--radius-md); border: 1px solid var(--outline-variant); font-size: 0.8125rem; color: var(--on-surface-variant); line-height: 1.4;">
+              Institutional intelligence scans historical transactions for anomalies, duplicate UTR reuse, and recurring settlement disputes.
+            </div>
+
+            <div class="cp-matrix-grid">
+              <div class="cp-matrix-card">
+                <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.65rem;">Historical Cases</span>
+                <strong class="font-data-lg" id="cp-hero-case-count" style="font-size: 1.25rem; color: var(--primary);">0</strong>
+              </div>
+              <div class="cp-matrix-card">
+                <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.65rem;">Lifetime Volume</span>
+                <strong class="font-data-lg" id="cp-hero-total-exp" style="font-size: 1.25rem; color: var(--on-surface);">₹0.00</strong>
+              </div>
+              <div class="cp-matrix-card">
+                <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.65rem;">Disputed Exposure</span>
+                <strong class="font-data-lg" id="cp-hero-disputed-exp" style="font-size: 1.25rem; color: var(--error);">₹0.00</strong>
+              </div>
+              <div class="cp-matrix-card">
+                <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.65rem;">Reference Reuse</span>
+                <strong class="font-data-lg" id="cp-hero-reuse-status" style="font-size: 0.95rem; color: var(--success); margin-top: 0.2rem;">✓ Clean</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Graphic 2: Lifetime Exposure Breakdown Bars -->
+          <div class="card cp-exposure-bars-box">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="font-label-caps" style="color: var(--primary); font-size: 0.7rem;">EXPOSURE BREAKDOWN</span>
+              <span class="font-data-sm" style="color: var(--on-surface-variant); font-size: 0.7rem;">Lifetime Portfolio</span>
+            </div>
+
+            <div class="cp-exp-bar-row">
+              <div class="cp-exp-bar-header">
+                <span style="color: var(--on-surface-variant);">Current Case Exposure</span>
+                <strong id="cp-exp-current-val" style="font-family: var(--font-mono); color: var(--primary);">₹0.00</strong>
+              </div>
+              <div class="cp-exp-bar-track">
+                <div class="cp-exp-bar-fill" id="cp-exp-current-fill" style="width: 25%; background-color: var(--primary);"></div>
+              </div>
+            </div>
+
+            <div class="cp-exp-bar-row">
+              <div class="cp-exp-bar-header">
+                <span style="color: var(--on-surface-variant);">Historical Reconciled Volume</span>
+                <strong id="cp-exp-hist-val" style="font-family: var(--font-mono); color: var(--success);">₹0.00</strong>
+              </div>
+              <div class="cp-exp-bar-track">
+                <div class="cp-exp-bar-fill" id="cp-exp-hist-fill" style="width: 75%; background-color: var(--success);"></div>
+              </div>
+            </div>
+
+            <div class="cp-exp-bar-row">
+              <div class="cp-exp-bar-header">
+                <span style="color: var(--on-surface-variant);">Disputed / Unresolved Exposure</span>
+                <strong id="cp-exp-disp-val" style="font-family: var(--font-mono); color: var(--error);">₹0.00</strong>
+              </div>
+              <div class="cp-exp-bar-track">
+                <div class="cp-exp-bar-fill" id="cp-exp-disp-fill" style="width: 0%; background-color: var(--error);"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Graphic 1: Bank Reference & UTR Reuse Check -->
+        <section class="card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">manage_search</span>
+                <span>BANK REFERENCE &amp; UTR REUSE CHECK</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Cross-examination of payment references across historical counterparty settlements.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Correlated Ledger</span>
+          </div>
+
+          <div id="cp-reference-correlations-container">
+            <p class="font-body-sm" style="color: var(--on-surface-variant);">No reference reuse detected across historical cases.</p>
+          </div>
+        </section>
+
+        <!-- Counterparty Diagnostics Details Panel -->
+        <section class="card" style="padding: 1.25rem;">
+          <div class="detail-panel active" id="panel-counterparty">
+
+            <!-- Historical Signals Section -->
+            <div style="margin-bottom: 1.25rem;">
+              <h4 class="font-label-caps" style="color: var(--primary); margin-bottom: 0.5rem;">⚡ Historical Risk Signals &amp; Alerts</h4>
+              <div id="cp-risk-signals-container">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No historical risk signals detected for this case.</p>
+              </div>
+            </div>
+
+            <!-- Recurring Discrepancy Patterns Section -->
+            <div style="margin-bottom: 1.25rem;">
+              <h4 class="font-label-caps" style="color: var(--primary); margin-bottom: 0.5rem;">⚠️ Recurring Discrepancy Patterns</h4>
+              <div id="cp-recurring-discrepancies-container">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No recurring discrepancy patterns identified.</p>
+              </div>
+            </div>
+
+            <!-- Correlated Historical Cases Section -->
+            <div>
+              <h4 class="font-label-caps" style="color: var(--primary); margin-bottom: 0.5rem;">🔗 Correlated Historical Cases</h4>
+              <div id="cp-related-cases-container">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No related historical cases discovered.</p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+
+      <!-- =====================================================================
+           SECTION: AI FINANCE CONTROLLER WORKSPACE (UX PASS 4 / B4)
+           ===================================================================== -->
+      <div id="view-controller" class="app-view">
+
+        <!-- Controller Header -->
+        <section class="case-story-header" style="margin-bottom: 1.25rem;">
+          <div class="case-story-meta-row">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Controller Intelligence</span>
+              <span class="case-id-badge" id="controller-header-title">Deterministic Controller Directives</span>
+              <span id="controller-active-case-tag" class="badge badge-confirmed">No Active Case</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn-secondary" onclick="setWorkspace('cases')" style="font-size: 0.8125rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_back</span>
+                <span>Return to Investigation</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="font-body-md" style="color: var(--on-surface); font-size: 0.9375rem; line-height: 1.5;">
+              Deterministic financial assessment, policy enforcement directives, grounded Q&amp;A, and auditable control logic.
+            </p>
+          </div>
+        </section>
+
+        <!-- Primary Controller Decision Hero Card -->
+        <section class="card case-truth-main-card" style="border-left: 5px solid var(--primary); margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">PRIMARY CONTROLLER DECISION</span>
+              <div class="font-headline-md" id="controller-action-badge" style="font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-top: 0.2rem;">
+                CONFIRM_RECONCILIATION
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="badge badge-confirmed" id="ctrl-view-risk-badge">LOW RISK</span>
+              <span class="badge badge-confirmed" id="controller-review-req">Automated (No Action)</span>
+            </div>
+          </div>
+
+          <!-- Executive Controller Brief -->
+          <div style="padding: 0.85rem 1rem; background: var(--surface-container-lowest); border-radius: var(--radius-md); border: 1px solid var(--outline-variant); margin-bottom: 0.75rem;">
+            <strong class="font-label-caps" style="color: var(--primary); font-size: 0.72rem; display: block; margin-bottom: 0.25rem;">EXECUTIVE DECISION SUMMARY</strong>
+            <p id="controller-exec-brief" class="font-body-sm" style="color: var(--on-surface); line-height: 1.45; margin: 0;">
+              Select a case to inspect controller intelligence and decision recommendations.
+            </p>
+          </div>
+
+          <!-- Compact Grounding Chips & Details -->
+          <div id="controller-grounding-section">
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.68rem;">DETERMINISTIC GROUNDING TRACE:</span>
+            <div class="ctrl-grounding-chips" id="controller-grounding-chips-list">
+              <span class="ctrl-grounding-chip">Grounded in verified case records</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Graphic 1: Decision Factors Flow Graphic -->
+        <section class="card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">rule</span>
+                <span>DECISION FACTORS &rarr; CONTROLLER DIRECTIVE</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Deterministic invariant factors evaluated to produce the final controller directive.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Control Logic</span>
+          </div>
+
+          <div class="ctrl-factors-flow" id="ctrl-factors-flow-container">
+            <div class="ctrl-factor-chip">
+              <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.65rem;">Amount Check</span>
+              <strong id="ctrl-factor-amt" style="font-size: 0.8125rem; color: var(--success);">✓ Matched</strong>
+            </div>
+            <div class="ctrl-factor-chip">
+              <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.65rem;">Reference Check</span>
+              <strong id="ctrl-factor-ref" style="font-size: 0.8125rem; color: var(--success);">✓ Matched</strong>
+            </div>
+            <div class="ctrl-factor-chip">
+              <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.65rem;">Counterparty</span>
+              <strong id="ctrl-factor-cp" style="font-size: 0.8125rem; color: var(--success);">✓ Resolved</strong>
+            </div>
+            <div class="ctrl-factor-chip">
+              <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.65rem;">Conflict Check</span>
+              <strong id="ctrl-factor-conflict" style="font-size: 0.8125rem; color: var(--success);">✓ Zero Conflicts</strong>
+            </div>
+
+            <span class="material-symbols-outlined" style="color: var(--outline-variant); font-size: 1.5rem; justify-self: center;">arrow_forward</span>
+
+            <div class="ctrl-factor-chip" style="border-left: 3px solid var(--primary); background: var(--surface-container-lowest);">
+              <span class="font-label-caps" style="color: var(--primary); font-size: 0.65rem;">FINAL DIRECTIVE</span>
+              <strong id="ctrl-factor-directive" style="font-size: 0.875rem; color: var(--primary);">CONFIRM_RECONCILIATION</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- Prioritized Action Directives & Grounded Q&A -->
+        <section class="card" style="padding: 1.25rem;">
+          <div class="detail-panel active" id="panel-controller">
+
+            <!-- Prioritized Action Directives -->
+            <div style="margin-bottom: 1.5rem;">
+              <h4 class="font-label-caps" style="color: var(--primary); margin-bottom: 0.6rem;">Prioritized Action Directives</h4>
+              <div class="action-list" id="controller-actions-list">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No actions required.</p>
+              </div>
+            </div>
+
+            <!-- Grounded Controller Q&A -->
+            <div class="card" style="padding: 1.25rem; background-color: var(--surface-container-low); border: 1px solid var(--outline-variant);">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <span class="material-symbols-outlined" style="color: var(--primary); font-size: 1.25rem;">chat</span>
+                <strong class="font-label-caps" style="color: var(--primary); font-size: 0.8125rem;">ASK AI FINANCE CONTROLLER</strong>
+              </div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-bottom: 0.75rem;">
+                Query the controller regarding grounded reconciliation facts, variance causes, and policy directives.
+              </p>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" class="input-field" id="controller-query-input" placeholder="Ask a question grounded in this case's financial facts..." style="flex: 1; min-width: 200px; font-size: 0.8125rem;">
+                <button class="btn-primary" id="btn-ask-controller" style="font-size: 0.8125rem;">Ask Controller</button>
+              </div>
+              <div id="controller-query-answer" style="display: none; margin-top: 0.75rem; font-size: 0.8125rem;"></div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+
+      <!-- =====================================================================
+           SECTION: HUMAN REVIEW WORKSPACE (UX PASS 4 / B4)
+           ===================================================================== -->
+      <div id="view-review" class="app-view">
+
+        <!-- Review Header -->
+        <section class="case-story-header" style="margin-bottom: 1.25rem;">
+          <div class="case-story-meta-row">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Review &amp; Oversight</span>
+              <span class="case-id-badge" id="review-header-title">Human Decision Desk</span>
+              <span id="review-active-case-tag" class="badge badge-partial">No Active Case</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn-secondary" onclick="setWorkspace('cases')" style="font-size: 0.8125rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_back</span>
+                <span>Return to Investigation</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="font-body-md" style="color: var(--on-surface); font-size: 0.9375rem; line-height: 1.5;">
+              Investigation task checklist, evidence inspection records, reviewer notes, and immutable decision sign-offs.
+            </p>
+          </div>
+        </section>
+
+        <!-- Review Summary Matrix (4 Cards) -->
+        <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div class="card" style="padding: 0.85rem;">
+            <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.68rem;">Review Status</div>
+            <div class="font-data-md" id="review-status-badge" style="margin-top: 0.2rem; font-weight: 700; color: var(--warning); font-size: 1.15rem;">PENDING</div>
+          </div>
+          <div class="card" style="padding: 0.85rem;">
+            <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.68rem;">Human Decision</div>
+            <div class="font-data-md" id="review-decision-badge" style="margin-top: 0.2rem; font-weight: 700; font-size: 1.15rem; color: var(--on-surface);">UNRESOLVED</div>
+          </div>
+          <div class="card" style="padding: 0.85rem;">
+            <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.68rem;">Deterministic Status</div>
+            <div class="font-data-md" id="review-det-status" style="margin-top: 0.2rem; font-weight: 700; color: var(--success); font-size: 1.15rem;">CONFIRMED</div>
+          </div>
+          <div class="card" style="padding: 0.85rem;">
+            <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.68rem;">Assigned Reviewer</div>
+            <div class="font-data-md" id="review-assigned-reviewer-text" style="margin-top: 0.2rem; font-weight: 600; font-size: 0.95rem; color: var(--primary);">Lead Controller</div>
+          </div>
+        </section>
+
+        <!-- Review Requirement Reasons Box -->
+        <div id="review-reasons-box" style="display: none; margin-bottom: 1.25rem; padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--outline-variant); background: var(--surface-container-low);"></div>
+
+        <!-- Graphic 1: Review Lifecycle Timeline Graphic -->
+        <section class="card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">timeline</span>
+                <span>REVIEW LIFECYCLE TIMELINE</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Chronological stages of this case's human review and audit lifecycle.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Oversight Track</span>
+          </div>
+
+          <div class="review-lifecycle-timeline" id="review-lifecycle-timeline-container">
+            <div class="review-lifecycle-step completed" id="rev-step-1">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 1</span>
+              <strong style="font-size: 0.8125rem;">1. CREATED</strong>
+              <span class="font-data-sm" style="font-size: 0.68rem; color: var(--success);">✓ Initialized</span>
+            </div>
+            <div class="review-lifecycle-step completed" id="rev-step-2">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 2</span>
+              <strong style="font-size: 0.8125rem;">2. ASSIGNED</strong>
+              <span class="font-data-sm" id="rev-step-2-status" style="font-size: 0.68rem; color: var(--primary);">Assigned</span>
+            </div>
+            <div class="review-lifecycle-step active" id="rev-step-3">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 3</span>
+              <strong style="font-size: 0.8125rem;">3. EVIDENCE</strong>
+              <span class="font-data-sm" id="rev-step-3-status" style="font-size: 0.68rem;">In Progress</span>
+            </div>
+            <div class="review-lifecycle-step" id="rev-step-4">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 4</span>
+              <strong style="font-size: 0.8125rem;">4. DECISION</strong>
+              <span class="font-data-sm" id="rev-step-4-status" style="font-size: 0.68rem; color: var(--on-surface-variant);">Pending</span>
+            </div>
+            <div class="review-lifecycle-step" id="rev-step-5">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 5</span>
+              <strong style="font-size: 0.8125rem;">5. FINALIZED</strong>
+              <span class="font-data-sm" id="rev-step-5-status" style="font-size: 0.68rem; color: var(--on-surface-variant);">Open</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Review Tasks, Notes & Decision Actions Panel -->
+        <section class="card" style="padding: 1.25rem;">
+          <div class="detail-panel active" id="panel-review">
+
+            <!-- Finalized / Locked Banner -->
+            <div id="review-locked-banner" style="display: none;"></div>
+
+            <!-- Investigation Tasks Section -->
+            <div style="margin-bottom: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.4rem;">
+                <h4 class="font-label-caps" style="color: var(--primary);">Investigation Tasks</h4>
+                <button class="btn-secondary" id="btn-start-review" style="font-size: 0.75rem;">▶ Start Review</button>
+              </div>
+              <div class="action-list" id="review-actions-container">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No review tasks assigned.</p>
+              </div>
+            </div>
+
+            <!-- Evidence Inspection Records -->
+            <div style="margin-bottom: 1.25rem;">
+              <h4 class="font-label-caps" style="color: var(--primary); margin-bottom: 0.5rem;">Evidence Inspection Records</h4>
+              <div class="evidence-list" id="review-evidence-inspection-list">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No evidence items available to inspect.</p>
+              </div>
+            </div>
+
+            <!-- Reviewer Notes (Append-Only Audit Log) -->
+            <div style="margin-bottom: 1.25rem;">
+              <h4 class="font-label-caps" style="color: var(--primary); margin-bottom: 0.5rem;">Reviewer Notes (Append-Only Audit Log)</h4>
+              <div class="card" style="padding: 0.85rem; background: var(--surface-container-lowest);">
+                <div id="review-notes-container" style="max-height: 140px; overflow-y: auto; margin-bottom: 0.5rem;">
+                  <p class="font-body-sm" style="color: var(--on-surface-variant);">No notes recorded yet.</p>
+                </div>
+                <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                  <input type="text" class="input-field" id="review-note-input" placeholder="Add immutable review note..." style="flex: 1; min-width: 180px; font-size: 0.8125rem;">
+                  <button class="btn-secondary" id="btn-add-note" style="font-size: 0.8125rem;">Add Note</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Record Review Decision Actions -->
+            <div style="margin-bottom: 1.25rem;">
+              <h4 class="font-label-caps" style="color: var(--primary); margin-bottom: 0.5rem;">Record Review Decision</h4>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn-primary" id="btn-decide-confirm" style="font-size: 0.78rem;">✓ Confirm Resolution</button>
+                <button class="btn-secondary" id="btn-decide-more-evidence" style="font-size: 0.78rem;">📋 Request Evidence</button>
+                <button class="btn-secondary" id="btn-decide-escalate" style="font-size: 0.78rem; color: var(--error); border-color: var(--error);">⚠️ Escalate</button>
+                <button class="btn-secondary" id="btn-decide-resolve" style="font-size: 0.78rem;">🔒 Mark Resolved</button>
+                <button class="btn-secondary" id="btn-decide-close" style="font-size: 0.78rem;">🛑 Close Review</button>
+              </div>
+            </div>
+
+            <!-- Cryptographic Audit Trail -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.4rem;">
+                <h4 class="font-label-caps" style="color: var(--primary);">Cryptographic Audit Trail</h4>
+                <button class="btn-secondary" id="btn-verify-audit" style="font-size: 0.75rem;">🛡️ Verify Audit Chain</button>
+              </div>
+              <div id="audit-verify-status" style="display: none; padding: 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; margin-bottom: 0.5rem;"></div>
+              <div id="audit-timeline-container" class="font-data-sm" style="max-height: 180px; overflow-y: auto;">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No audit events recorded.</p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+      <!-- =====================================================================
+           SECTION: REMEDIATION & ACTION WORKSPACE (UX PASS 5 / B5)
+           ===================================================================== -->
+      <div id="view-remediation" class="app-view">
+
+        <!-- Remediation Header -->
+        <section class="case-story-header" style="margin-bottom: 1.25rem;">
+          <div class="case-story-meta-row">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Remediation &amp; Action</span>
+              <span class="case-id-badge" id="remediation-header-title">Proactive Remediation Proposals</span>
+              <span id="remediation-active-case-tag" class="badge badge-confirmed">No Active Case</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn-secondary" onclick="setWorkspace('cases')" style="font-size: 0.8125rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_back</span>
+                <span>Return to Investigation</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="font-body-md" style="color: var(--on-surface); font-size: 0.9375rem; line-height: 1.5;">
+              Grounded communication drafts, vendor dispute notices, missing advice requests, and balanced draft journal vouchers.
+            </p>
+          </div>
+        </section>
+
+        <!-- Remediation Hero: Proposal Action Controls -->
+        <section class="card case-truth-main-card" style="border-left: 5px solid var(--primary); margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">REMEDIATION DIRECTIVES</span>
+              <div class="font-headline-md" id="remediation-hero-status" style="font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-top: 0.2rem;">
+                Awaiting Action Proposal
+              </div>
+            </div>
+            <span class="badge badge-confirmed" id="remediation-stage-badge">READY TO DRAFT</span>
+          </div>
+
+          <p class="font-body-sm" style="color: var(--on-surface-variant); margin-bottom: 0.85rem; line-height: 1.45;">
+            Propose grounded remediation actions based on deterministic reconciliation discrepancies and controller directives.
+          </p>
+
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn-secondary" id="btn-propose-dispute" style="color: var(--error); border-color: var(--error); font-size: 0.78rem;">📝 Propose Dispute Notice</button>
+            <button class="btn-secondary" id="btn-propose-followup" style="font-size: 0.78rem;">📨 Propose Payment Follow-Up</button>
+            <button class="btn-secondary" id="btn-propose-missing" style="font-size: 0.78rem;">📋 Request Missing Bank Advice</button>
+            <button class="btn-secondary" id="btn-propose-journal" style="color: var(--primary); border-color: var(--primary); font-size: 0.78rem;">📒 Generate Draft Journal Voucher</button>
+          </div>
+        </section>
+
+        <!-- Graphic 1: Remediation Lifecycle Timeline -->
+        <section class="card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">playlist_add_check</span>
+                <span>REMEDIATION WORKFLOW LIFECYCLE</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Propose &rarr; Controller Review &rarr; Approval &rarr; Final Execution / Journal Export.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Action Pipeline</span>
+          </div>
+
+          <div class="remediation-lifecycle-timeline" id="remediation-lifecycle-timeline-container">
+            <div class="remediation-lifecycle-step active" id="rem-step-1">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 1</span>
+              <strong style="font-size: 0.8125rem;">1. PROPOSAL</strong>
+              <span class="font-data-sm" id="rem-step-1-status" style="font-size: 0.68rem; color: var(--primary);">Ready</span>
+            </div>
+            <div class="remediation-lifecycle-step" id="rem-step-2">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 2</span>
+              <strong style="font-size: 0.8125rem;">2. APPROVAL</strong>
+              <span class="font-data-sm" id="rem-step-2-status" style="font-size: 0.68rem; color: var(--on-surface-variant);">Pending</span>
+            </div>
+            <div class="remediation-lifecycle-step" id="rem-step-3">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 3</span>
+              <strong style="font-size: 0.8125rem;">3. EXECUTION</strong>
+              <span class="font-data-sm" id="rem-step-3-status" style="font-size: 0.68rem; color: var(--on-surface-variant);">Waiting</span>
+            </div>
+            <div class="remediation-lifecycle-step" id="rem-step-4">
+              <span class="font-label-caps" style="font-size: 0.65rem; color: var(--on-surface-variant);">STAGE 4</span>
+              <strong style="font-size: 0.8125rem;">4. COMPLETED</strong>
+              <span class="font-data-sm" id="rem-step-4-status" style="font-size: 0.68rem; color: var(--on-surface-variant);">Open</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Proposals & Journal Voucher Panel -->
+        <section class="card" style="padding: 1.25rem;">
+          <div class="detail-panel active" id="panel-remediation">
+
+            <!-- Proposals Section -->
+            <div style="margin-bottom: 1.5rem;">
+              <h4 class="font-label-caps" style="color: var(--primary); margin-bottom: 0.6rem;">Remediation Proposals (Requires Human Approval)</h4>
+              <div id="remediation-actions-container">
+                <p class="font-body-sm" style="color: var(--on-surface-variant);">No remediation actions proposed yet. Click a proposal button above to draft grounded actions.</p>
+              </div>
+            </div>
+
+            <!-- Double-Entry Journal Voucher Section -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h4 class="font-label-caps" style="color: var(--primary);">Double-Entry Draft Journal Voucher</h4>
+                <span id="journal-balance-tag" class="badge badge-confirmed">BALANCED (DR = CR)</span>
+              </div>
+              <div class="card" style="background-color: var(--surface-container-low); padding: 1rem; border: 1px solid var(--outline-variant);">
+                <div id="journal-voucher-preview" class="font-data-sm">
+                  <p class="font-body-sm" style="color: var(--on-surface-variant);">No journal voucher generated yet.</p>
+                </div>
+                <div style="margin-top: 0.85rem; display: flex; justify-content: flex-end;">
+                  <button class="btn-secondary" id="btn-export-journal" onclick="exportJournalVoucher()" style="font-size: 0.78rem;">📥 Export Balanced Voucher (JSON)</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+
+      <!-- =====================================================================
+           SECTION: AUDIT & CRYPTOGRAPHIC PROVENANCE WORKSPACE (UX PASS 5 / B5)
+           ===================================================================== -->
+      <div id="view-audit" class="app-view">
+
+        <!-- Audit Header -->
+        <section class="case-story-header" style="margin-bottom: 1.25rem;">
+          <div class="case-story-meta-row">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="font-label-caps" style="color: var(--on-surface-variant);">Audit &amp; Provenance</span>
+              <span class="case-id-badge" id="audit-header-title">Cryptographic Lineage</span>
+              <span id="audit-active-case-tag" class="badge badge-confirmed">No Active Case</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn-secondary" onclick="setWorkspace('cases')" style="font-size: 0.8125rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_back</span>
+                <span>Return to Investigation</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="font-body-md" style="color: var(--on-surface); font-size: 0.9375rem; line-height: 1.5;">
+              Immutable provenance lineage DAG, tamper-evident audit chain, and full structured text/JSON forensic reports.
+            </p>
+          </div>
+        </section>
+
+        <!-- Audit Hero: "What This Record Proves" Explanation Card -->
+        <section class="card audit-proves-card" style="border-left: 5px solid var(--success); margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="material-symbols-outlined" style="color: var(--success); font-size: 1.5rem;">verified_user</span>
+              <strong class="font-label-caps" style="color: var(--success); font-size: 0.85rem;">WHAT THIS AUDIT RECORD PROVES</strong>
+            </div>
+            <span class="badge badge-confirmed" id="audit-sha-status-badge">SHA-256 INTEGRITY INTACT</span>
+          </div>
+
+          <p class="font-body-sm" style="color: var(--on-surface); line-height: 1.45; margin: 0;">
+            These forensic records mathematically preserve the ingested evidence and deterministic reconciliation decisions used to produce the reported financial outcome.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-top: 0.25rem; font-size: 0.8125rem; color: var(--on-surface-variant);">
+            <div>✓ Evidence items are cryptographically hashed</div>
+            <div>✓ Ledger matches are deterministically linked</div>
+            <div>✓ Controller policies are immutably logged</div>
+          </div>
+        </section>
+
+        <!-- Graphic 1: Provenance Lineage DAG Trace -->
+        <section class="card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="font-headline-md" style="font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.45rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--primary);">account_tree</span>
+                <span>PROVENANCE LINEAGE DAG TRACE</span>
+              </h2>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.15rem;">
+                Trace every decision back to source evidence artifacts and bank ledger entries.
+              </p>
+            </div>
+            <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Forensic Trace</span>
+          </div>
+
+          <div class="detail-panel active" id="panel-provenance">
+            <div id="provenance-details-container">
+              <p class="font-body-sm" style="color: var(--on-surface-variant);">Provenance trace will appear once a case is reconciled.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Structured Forensic Reports Panel -->
+        <section class="card" style="padding: 1.25rem;">
+          <div class="detail-panel active" id="panel-report">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="tab-btn active btn-secondary" id="btn-show-text-report" style="font-size: 0.8125rem;">Formatted Text Report</button>
+                <button class="tab-btn btn-secondary" id="btn-show-json-report" style="font-size: 0.8125rem;">Structured JSON</button>
+              </div>
+              <span class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.7rem;">Deterministic Report</span>
+            </div>
+            <div class="card font-data-sm" id="report-terminal" style="background-color: var(--surface-container-low); padding: 0.85rem; max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.45;">
+              Select a case to inspect report outputs.
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </main>
+
+    <!-- Docked Provenance Footer -->
+    <footer class="provenance-footer">
+      <div class="lineage-trace">
+        <span class="font-label-caps">Lineage:</span>
+        <span>Raw_Export</span>
+        <span class="material-symbols-outlined">arrow_forward</span>
+        <span>Multimodal_NER</span>
+        <span class="material-symbols-outlined">arrow_forward</span>
+        <span>Deterministic_Reconciliation</span>
+      </div>
+      <div>
+        <span>VERITY Forensic Workspace © 2026. Financial Truth, Reconstructed.</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Modal: Assign Reviewer -->
+  <div id="modal-assign-reviewer" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div class="card" style="width: 100%; max-width: 420px; margin: 1rem; padding: 1.5rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); box-shadow: 0 12px 32px rgba(0,0,0,0.6);" role="dialog" aria-modal="true" aria-labelledby="assign-modal-title">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <h3 id="assign-modal-title" class="font-label-caps" style="color: var(--primary); font-size: 1rem; margin: 0;">Assign Reviewer</h3>
+        <button id="btn-close-assign-modal" class="btn-icon" style="border: none; background: transparent; cursor: pointer; color: var(--on-surface-variant); display: flex; align-items: center; justify-content: center;" aria-label="Close dialog">
+          <span class="material-symbols-outlined">close</span>
         </button>
       </div>
-    </section>
-
-    <!-- Pipeline Stage Telemetry Timeline -->
-    <section class="timeline-card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="font-size: 0.95rem; font-weight: 700;">8-Stage Finance Controller Pipeline</h3>
-        <span id="total-latency-tag" style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--accent-secondary);">Total Latency: -- ms</span>
+      <p class="font-body-sm" style="color: var(--on-surface-variant); margin-bottom: 1rem;">
+        Assign an institutional reviewer to case <strong id="assign-modal-case-id" style="font-family: var(--font-mono); color: var(--on-surface);"></strong>:
+      </p>
+      <div style="margin-bottom: 1.25rem;">
+        <label for="assign-reviewer-input" class="font-body-sm" style="display: block; margin-bottom: 0.35rem; font-weight: 600;">Reviewer ID / Name</label>
+        <input type="text" id="assign-reviewer-input" class="input-field" placeholder="e.g. ctrl_alice, controller_1" style="width: 100%; box-sizing: border-box; font-size: 0.85rem;">
       </div>
-      <div class="stage-grid" id="stage-grid">
-        <div class="stage-box" id="stage-INGESTION"><div class="stage-num">01</div><div class="stage-name">Ingestion</div><div class="stage-metrics">--</div></div>
-        <div class="stage-box" id="stage-EXTRACTION"><div class="stage-num">02</div><div class="stage-name">Extraction</div><div class="stage-metrics">--</div></div>
-        <div class="stage-box" id="stage-ENTITY_RESOLUTION"><div class="stage-num">03</div><div class="stage-name">Entities</div><div class="stage-metrics">--</div></div>
-        <div class="stage-box" id="stage-TRANSACTION_MATCHING"><div class="stage-num">04</div><div class="stage-name">Matching</div><div class="stage-metrics">--</div></div>
-        <div class="stage-box" id="stage-DEDUPLICATION"><div class="stage-num">05</div><div class="stage-name">Dedup</div><div class="stage-metrics">--</div></div>
-        <div class="stage-box" id="stage-CONTRADICTION_DETECTION"><div class="stage-num">06</div><div class="stage-name">Conflicts</div><div class="stage-metrics">--</div></div>
-        <div class="stage-box" id="stage-RECONCILIATION"><div class="stage-num">07</div><div class="stage-name">Reconciliation</div><div class="stage-metrics">--</div></div>
-        <div class="stage-box" id="stage-REPORTING"><div class="stage-num">08</div><div class="stage-name">Reporting</div><div class="stage-metrics">--</div></div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" id="btn-cancel-assign" class="btn-secondary" style="font-size: 0.8125rem;">Cancel</button>
+        <button type="button" id="btn-submit-assign" class="btn-primary" style="font-size: 0.8125rem;">Assign Reviewer</button>
       </div>
-    </section>
-
-    <!-- Primary Financial Truth Hero Card -->
-    <section class="truth-hero-card" id="truth-hero-card">
-      <div class="truth-status-badge-container">
-        <div class="status-badge-lg badge-CONFIRMED" id="hero-status-badge">READY</div>
-        <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span>Confidence</span>
-          <span id="hero-confidence-val" style="font-weight: 700; color: var(--text-main);">100%</span>
-        </div>
-        <div class="confidence-bar-wrapper">
-          <div class="confidence-bar-bg">
-            <div class="confidence-bar-fill" id="hero-confidence-bar" style="width: 100%;"></div>
-          </div>
-        </div>
-        <div id="hero-review-badge" style="font-size: 0.75rem; text-align: center; margin-top: 0.25rem; font-weight: 600; color: var(--status-confirmed);">
-          ✓ NO REVIEW REQUIRED
-        </div>
-      </div>
-
-      <div class="truth-hero-details">
-        <h2 id="hero-title">Select or submit a case to begin reconciliation</h2>
-        <p id="hero-summary">VERITY analyzes messy multimodal evidence across bank statements, WhatsApp chats, invoices, and payment screenshots to reconstruct verified financial truth with mathematical certainty and zero hallucination.</p>
-      </div>
-    </section>
-
-    <!-- Financial Accounting Summary Grid -->
-    <section class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Expected Claim</div>
-        <div class="metric-val" id="metric-claimed">₹0.00</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Verified Matched</div>
-        <div class="metric-val" id="metric-matched" style="color: var(--status-confirmed);">₹0.00</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Outstanding Balance</div>
-        <div class="metric-val" id="metric-outstanding" style="color: var(--status-partial);">₹0.00</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Discrepancies / Conflicts</div>
-        <div class="metric-val" id="metric-discrepancies" style="color: var(--status-contradicted);">0</div>
-      </div>
-    </section>
-
-    <!-- Deep Investigation Panels (Tabs) -->
-    <section class="details-section">
-      <div class="panel-tabs">
-        <button class="panel-tab-btn active" data-panel="panel-command-center" style="background: rgba(99, 102, 241, 0.2); border-color: var(--accent-primary); font-weight: 700; color: #c7d2fe;">🎯 Command Center (Golden Demo)</button>
-        <button class="panel-tab-btn" data-panel="panel-portfolio">📊 Case Portfolio</button>
-        <button class="panel-tab-btn" data-panel="panel-counterparty">🏛️ Counterparty Memory</button>
-        <button class="panel-tab-btn" data-panel="panel-remediation">⚡ Remediation & Actions</button>
-        <button class="panel-tab-btn" data-panel="panel-controller">🧠 AI Controller</button>
-        <button class="panel-tab-btn" data-panel="panel-review">👤 Human Review</button>
-        <button class="panel-tab-btn" data-panel="panel-evidence">Evidence (0)</button>
-        <button class="panel-tab-btn" data-panel="panel-matching">Matching Topology</button>
-        <button class="panel-tab-btn" data-panel="panel-contradictions">Contradictions (0)</button>
-        <button class="panel-tab-btn" data-panel="panel-factors">Confidence Signals</button>
-        <button class="panel-tab-btn" data-panel="panel-actions">Recommended Actions</button>
-        <button class="panel-tab-btn" data-panel="panel-provenance">Provenance Lineage</button>
-        <button class="panel-tab-btn" data-panel="panel-report">Text Report & JSON</button>
-      </div>
-
-      <!-- Panel: Golden Demo Command Center (Day 20 Unified Cockpit) -->
-      <div class="detail-panel active" id="panel-command-center">
-        <!-- Cockpit Header Banner -->
-        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.75rem 1.25rem; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 1.25rem;">✨</span>
-            <div>
-              <div style="font-weight: 700; font-size: 0.95rem; color: #fff;">Finance Controller Command Center</div>
-              <div style="font-size: 0.78rem; color: var(--text-muted);" id="cc-active-case-tag">Case: None Selected</div>
-            </div>
-          </div>
-          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-            <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--status-confirmed); border-color: var(--status-confirmed);">✓ Zero Hallucination</span>
-            <span class="tag-badge" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border-color: var(--accent-primary);">✓ Deterministic Truth</span>
-            <span class="tag-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--status-partial); border-color: var(--status-partial);">✓ Human Approval Gate</span>
-            <span class="tag-badge" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-secondary); border-color: var(--accent-secondary);">✓ SHA-256 Provenance</span>
-          </div>
-        </div>
-
-        <!-- The 7-Scene Panoramic Story Layout -->
-        <div class="command-center-narrative">
-
-          <!-- SCENE 1: Messy Input Evidence -->
-          <div class="scene-card">
-            <div class="scene-header">
-              <span class="scene-num-badge">SCENE 1</span>
-              <strong style="font-size: 0.92rem;">Messy Heterogeneous Evidence</strong>
-              <span class="tag-badge" id="cc-evidence-count-badge">0 Evidence Sources</span>
-            </div>
-            <div id="cc-evidence-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.6rem; margin-top: 0.6rem;">
-              <p style="color: var(--text-faint); font-size: 0.84rem;">No evidence loaded yet. Select a scenario above.</p>
-            </div>
-          </div>
-
-          <!-- SCENE 2: AI Candidate Extraction vs Deterministic Financial Truth -->
-          <div class="scene-card">
-            <div class="scene-header">
-              <span class="scene-num-badge">SCENE 2</span>
-              <strong style="font-size: 0.92rem;">AI Extraction vs Deterministic Financial Truth</strong>
-              <span class="tag-badge" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: var(--status-contradicted);">Strict Architectural Separation</span>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.8rem; margin-top: 0.75rem;">
-              <!-- Left: AI Extraction (Candidate Claims) -->
-              <div style="background: rgba(99, 102, 241, 0.08); border: 1px dashed var(--accent-primary); border-radius: var(--radius-sm); padding: 0.85rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                  <strong style="font-size: 0.85rem; color: #a5b4fc;">🤖 AI VLM Extraction (Candidate Claims)</strong>
-                  <span class="tag-badge" style="font-size: 0.72rem;">Provisional</span>
-                </div>
-                <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-                  AI parses noisy Hinglish text, PDFs & screenshots into candidate claims. <em>Never treated as authoritative truth.</em>
-                </div>
-                <div id="cc-ai-claims-container" style="font-size: 0.8rem; font-family: var(--font-mono);">
-                  <p style="color: var(--text-faint); font-family: var(--font-sans);">Awaiting case execution...</p>
-                </div>
-              </div>
-
-              <!-- Right: Deterministic Financial Truth (Authoritative Reconciliation) -->
-              <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid var(--status-confirmed); border-radius: var(--radius-sm); padding: 0.85rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                  <strong style="font-size: 0.85rem; color: #86efac;">⚖️ Deterministic Truth (Reconciliation)</strong>
-                  <span id="cc-truth-status-tag" class="tag-badge" style="background: rgba(16, 185, 129, 0.25); color: var(--status-confirmed); border-color: var(--status-confirmed);">CONFIRMED</span>
-                </div>
-                <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-                  Mathematical reconciliation engine enforces strict accounting invariants and detects contradictions.
-                </div>
-                <div id="cc-truth-accounting-summary" style="font-size: 0.82rem;">
-                  <p style="color: var(--text-faint);">Awaiting case execution...</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SCENE 3: Institutional Counterparty Memory & Reference Reuse -->
-          <div class="scene-card" id="cc-scene-memory" style="border-left: 4px solid var(--accent-secondary);">
-            <div class="scene-header">
-              <span class="scene-num-badge" style="background: var(--accent-secondary);">SCENE 3</span>
-              <strong style="font-size: 0.92rem;">Institutional Memory & Counterparty Dossier</strong>
-              <span class="tag-badge" style="background: rgba(6, 182, 212, 0.2); color: var(--accent-secondary); border-color: var(--accent-secondary);">"Wait, that's clever!"</span>
-            </div>
-            <!-- Alert Banner for Reference Reuse / High Risk -->
-            <div id="cc-memory-alert-box" style="margin-top: 0.6rem; display: none;">
-              <!-- Populated dynamically -->
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.6rem; margin-top: 0.6rem;">
-              <div class="metric-card"><div class="metric-label">Entity Name</div><div class="metric-val" id="cc-cp-name" style="font-size: 0.95rem;">-</div></div>
-              <div class="metric-card"><div class="metric-label">Historical Cases</div><div class="metric-val" id="cc-cp-cases" style="color: var(--accent-primary);">0</div></div>
-              <div class="metric-card"><div class="metric-label">Lifetime Volume</div><div class="metric-val" id="cc-cp-volume">₹0.00</div></div>
-              <div class="metric-card"><div class="metric-label">Historical Risk Rating</div><div class="metric-val" id="cc-cp-risk" style="font-size: 0.95rem;">LOW</div></div>
-            </div>
-          </div>
-
-          <!-- SCENE 4: AI Finance Controller Decision Brief -->
-          <div class="scene-card">
-            <div class="scene-header">
-              <span class="scene-num-badge">SCENE 4</span>
-              <strong style="font-size: 0.92rem;">AI Finance Controller Decision & Risk Directive</strong>
-              <span id="cc-controller-risk-badge" class="tag-badge" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-primary);">RISK: EVALUATING</span>
-            </div>
-            <div id="cc-controller-content" style="margin-top: 0.6rem; font-size: 0.84rem;">
-              <p style="color: var(--text-faint);">Awaiting controller analysis...</p>
-            </div>
-          </div>
-
-          <!-- SCENE 5 & 6: Human Review & Safe Human-Gated Remediation -->
-          <div class="scene-card" style="border-left: 4px solid var(--status-partial);">
-            <div class="scene-header">
-              <span class="scene-num-badge" style="background: var(--status-partial);">SCENES 5 & 6</span>
-              <strong style="font-size: 0.92rem;">Human Review Separation & Safe Remediation</strong>
-              <span class="tag-badge" style="background: rgba(245, 158, 11, 0.2); color: var(--status-partial); border-color: var(--status-partial);">Human in the Loop</span>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0.8rem; margin-top: 0.75rem;">
-              <!-- Left: Remediation Proposal & Human Approval Buttons -->
-              <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                  <strong style="font-size: 0.85rem;">Proactive Remediation Proposal</strong>
-                  <span id="cc-action-status-pill" class="tag-badge" style="background: rgba(245, 158, 11, 0.2); color: var(--status-partial);">PENDING APPROVAL</span>
-                </div>
-                <div id="cc-remediation-preview" style="font-size: 0.82rem; margin-bottom: 0.75rem;">
-                  <p style="color: var(--text-faint);">No action proposed yet.</p>
-                </div>
-                <div id="cc-remediation-buttons" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                  <!-- Interactive Approve / Reject buttons -->
-                </div>
-              </div>
-
-              <!-- Right: Double-Entry Balanced Draft Journal Voucher -->
-              <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                  <strong style="font-size: 0.85rem;">Draft Journal Voucher (Accounting Truth)</strong>
-                  <span id="cc-journal-balance-tag" class="tag-badge" style="background: rgba(16, 185, 129, 0.2); color: var(--status-confirmed);">BALANCED (DR = CR)</span>
-                </div>
-                <div id="cc-journal-table-container" style="font-size: 0.78rem;">
-                  <p style="color: var(--text-faint);">Awaiting journal generation...</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SCENE 7: Cryptographic SHA-256 Audit Provenance -->
-          <div class="scene-card">
-            <div class="scene-header">
-              <span class="scene-num-badge">SCENE 7</span>
-              <strong style="font-size: 0.92rem;">Cryptographic Audit Provenance Timeline</strong>
-              <span class="tag-badge" style="background: rgba(16, 185, 129, 0.2); color: var(--status-confirmed); border-color: var(--status-confirmed);">✓ SHA-256 Chain Verified</span>
-            </div>
-            <div id="cc-audit-timeline-container" style="margin-top: 0.6rem; font-size: 0.8rem;">
-              <p style="color: var(--text-faint);">Awaiting audit event stream...</p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-        <!-- Top Portfolio KPIs -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
-          <div class="metric-card">
-            <div class="metric-label">Total Cases</div>
-            <div class="metric-val" id="port-total-cases" style="color: var(--accent-primary);">0</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Critical Risk</div>
-            <div class="metric-val" id="port-critical-cases" style="color: var(--status-contradicted);">0</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">High Risk</div>
-            <div class="metric-val" id="port-high-cases" style="color: var(--status-partial);">0</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">In Review</div>
-            <div class="metric-val" id="port-review-cases" style="color: var(--accent-secondary);">0</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Overdue SLA</div>
-            <div class="metric-val" id="port-overdue-cases" style="color: var(--status-contradicted);">0</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Total Exposure</div>
-            <div class="metric-val" id="port-total-exp" style="color: var(--text-main); font-size: 1.1rem;">₹0.00</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Disputed Exposure</div>
-            <div class="metric-val" id="port-disputed-exp" style="color: var(--status-contradicted); font-size: 1.1rem;">₹0.00</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Unresolved Bal.</div>
-            <div class="metric-val" id="port-unresolved-exp" style="color: var(--status-partial); font-size: 1.1rem;">₹0.00</div>
-          </div>
-        </div>
-
-        <!-- Search & Quick Filters -->
-        <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-            <button class="btn-secondary port-filter-btn active" data-filter="all" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">All Cases</button>
-            <button class="btn-secondary port-filter-btn" data-filter="review" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Review Queue</button>
-            <button class="btn-secondary port-filter-btn" data-filter="high_risk" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Critical / High</button>
-            <button class="btn-secondary port-filter-btn" data-filter="overdue" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Overdue</button>
-            <button class="btn-secondary port-filter-btn" data-filter="assigned" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Assigned</button>
-            <button class="btn-secondary port-filter-btn" data-filter="unassigned" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Unassigned</button>
-          </div>
-          <div style="display: flex; gap: 0.5rem; flex: 1; max-width: 320px;">
-            <input type="text" id="port-search-input" placeholder="Search case, entity, UTR, reviewer..." style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-main); padding: 0.35rem 0.6rem; font-size: 0.82rem;">
-            <button class="btn-secondary" id="btn-refresh-portfolio" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">⟳</button>
-          </div>
-        </div>
-
-        <!-- Case Portfolio Table Queue -->
-        <div style="overflow-x: auto; margin-bottom: 1.5rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
-            <thead>
-              <tr style="background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid var(--border-subtle); color: var(--text-faint); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">
-                <th style="padding: 0.6rem 0.8rem;">Case ID</th>
-                <th style="padding: 0.6rem 0.8rem;">Risk</th>
-                <th style="padding: 0.6rem 0.8rem;">Priority</th>
-                <th style="padding: 0.6rem 0.8rem;">Financial Truth</th>
-                <th style="padding: 0.6rem 0.8rem;">Review State</th>
-                <th style="padding: 0.6rem 0.8rem;">Exposure</th>
-                <th style="padding: 0.6rem 0.8rem;">SLA Status</th>
-                <th style="padding: 0.6rem 0.8rem;">Reviewer</th>
-                <th style="padding: 0.6rem 0.8rem; text-align: right;">Action</th>
-              </tr>
-            </thead>
-            <tbody id="portfolio-table-body">
-              <tr>
-                <td colspan="9" style="padding: 1.5rem; text-align: center; color: var(--text-faint);">Loading financial case portfolio...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Reviewer Workload Table -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">Finance Controller Team Workload & Allocation</h4>
-        <div style="overflow-x: auto; margin-bottom: 1.25rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
-            <thead>
-              <tr style="background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid var(--border-subtle); color: var(--text-faint); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">
-                <th style="padding: 0.5rem 0.8rem;">Reviewer</th>
-                <th style="padding: 0.5rem 0.8rem;">Assigned</th>
-                <th style="padding: 0.5rem 0.8rem;">Open</th>
-                <th style="padding: 0.5rem 0.8rem;">Critical</th>
-                <th style="padding: 0.5rem 0.8rem;">Overdue</th>
-                <th style="padding: 0.5rem 0.8rem;">Total Exposure</th>
-                <th style="padding: 0.5rem 0.8rem;">Capacity Status</th>
-              </tr>
-            </thead>
-            <tbody id="portfolio-workload-body">
-              <tr>
-                <td colspan="7" style="padding: 1rem; text-align: center; color: var(--text-faint);">No active reviewer assignments.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Panel: Counterparty Memory & Institutional Intelligence (Day 18) -->
-      <div class="detail-panel" id="panel-counterparty">
-        <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-          <div class="metric-card" style="flex: 1; min-width: 180px;">
-            <div class="metric-label">Identified Counterparty</div>
-            <div class="metric-val" id="cp-canonical-name" style="color: var(--accent-primary); font-size: 1.1rem;">First-Time Entity</div>
-          </div>
-          <div class="metric-card" style="flex: 1; min-width: 140px;">
-            <div class="metric-label">Historical Cases</div>
-            <div class="metric-val" id="cp-case-count" style="color: var(--text-main); font-size: 1.1rem;">0</div>
-          </div>
-          <div class="metric-card" style="flex: 1; min-width: 160px;">
-            <div class="metric-label">Lifetime Volume</div>
-            <div class="metric-val" id="cp-total-exposure" style="color: var(--status-confirmed); font-size: 1.1rem;">₹0.00</div>
-          </div>
-          <div class="metric-card" style="flex: 1; min-width: 160px;">
-            <div class="metric-label">Disputed / Conflict Vol.</div>
-            <div class="metric-val" id="cp-disputed-exposure" style="color: var(--status-contradicted); font-size: 1.1rem;">₹0.00</div>
-          </div>
-        </div>
-
-        <!-- Historical Risk Signals Alerts -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">⚡ Historical Risk Signals & Alerts</h4>
-        <div id="cp-risk-signals-container" style="margin-bottom: 1.25rem;">
-          <p style="color: var(--text-faint); font-size: 0.85rem;">No historical risk signals detected for this case.</p>
-        </div>
-
-        <!-- Reference / UTR Reuse Warnings -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">🔍 Bank Reference & UTR Reuse Check</h4>
-        <div id="cp-reference-correlations-container" style="margin-bottom: 1.25rem;">
-          <p style="color: var(--text-faint); font-size: 0.85rem;">No reference reuse detected across historical cases.</p>
-        </div>
-
-        <!-- Recurring Discrepancy Patterns -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">⚠️ Recurring Discrepancy Patterns</h4>
-        <div id="cp-recurring-discrepancies-container" style="margin-bottom: 1.25rem;">
-          <p style="color: var(--text-faint); font-size: 0.85rem;">No recurring discrepancy patterns identified.</p>
-        </div>
-
-        <!-- Deterministic Related Historical Cases -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">🔗 Correlated Historical Cases (Deterministic Links)</h4>
-        <div id="cp-related-cases-container" style="margin-bottom: 1.25rem;">
-          <p style="color: var(--text-faint); font-size: 0.85rem;">No related historical cases discovered.</p>
-        </div>
-      </div>
-
-      <!-- Panel: Proactive Remediation & Actions (Day 19) -->
-      <div class="detail-panel" id="panel-remediation">
-        <!-- Quick Action Triggers -->
-        <div style="display: flex; gap: 0.6rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-          <button class="btn-primary" id="btn-propose-dispute" style="background: rgba(239, 68, 68, 0.2); border: 1px solid var(--status-contradicted); color: var(--status-contradicted); padding: 0.45rem 0.85rem; font-size: 0.82rem;">📝 Propose Vendor Dispute Notice</button>
-          <button class="btn-secondary" id="btn-propose-followup" style="padding: 0.45rem 0.85rem; font-size: 0.82rem;">📨 Propose Payment Follow-Up</button>
-          <button class="btn-secondary" id="btn-propose-missing" style="padding: 0.45rem 0.85rem; font-size: 0.82rem;">📋 Request Missing Bank Advice</button>
-          <button class="btn-secondary" id="btn-propose-journal" style="background: rgba(99, 102, 241, 0.15); border: 1px solid var(--accent-primary); color: #a5b4fc; padding: 0.45rem 0.85rem; font-size: 0.82rem;">📒 Generate Draft Journal Voucher</button>
-        </div>
-
-        <!-- Proposed Remediation Actions List -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">Remediation Proposals (Requires Human Approval)</h4>
-        <div id="remediation-actions-container" style="margin-bottom: 1.5rem;">
-          <p style="color: var(--text-faint); font-size: 0.85rem;">No remediation actions proposed yet. Click a trigger above to propose a grounded action.</p>
-        </div>
-
-        <!-- Draft Journal Voucher Viewer -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <h4 style="font-size: 0.9rem; font-weight: 700;">Double-Entry Draft Journal Voucher (Accounting Truth)</h4>
-          <span id="journal-balance-tag" class="status-badge-lg badge-CONFIRMED" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">BALANCED (DR = CR)</span>
-        </div>
-        <div class="evidence-item" style="margin-bottom: 1.25rem; background: rgba(0, 0, 0, 0.2);">
-          <div id="journal-voucher-preview" style="font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.6;">
-            <p style="color: var(--text-faint);">No journal voucher generated yet. Click 'Generate Draft Journal Voucher' above.</p>
-          </div>
-          <div style="margin-top: 0.75rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
-            <button class="btn-secondary" id="btn-export-journal" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">📥 Export Balanced Voucher (JSON)</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel: Human Review Workspace (Day 14) -->
-      <div class="detail-panel" id="panel-review">
-        <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-          <div class="metric-card" style="flex: 1; min-width: 180px;">
-            <div class="metric-label">Review Status</div>
-            <div class="metric-val" id="review-status-badge" style="color: var(--status-partial); font-size: 1.1rem;">PENDING</div>
-          </div>
-          <div class="metric-card" style="flex: 1; min-width: 180px;">
-            <div class="metric-label">Human Review Decision</div>
-            <div class="metric-val" id="review-decision-badge" style="color: var(--accent-secondary); font-size: 1.1rem;">UNRESOLVED</div>
-          </div>
-          <div class="metric-card" style="flex: 1; min-width: 180px;">
-            <div class="metric-label">Deterministic Fact Status</div>
-            <div class="metric-val" id="review-det-status" style="color: var(--status-confirmed); font-size: 1.1rem;">CONFIRMED</div>
-          </div>
-        </div>
-
-        <!-- Investigation Actions Checklist -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <h4 style="font-size: 0.9rem; font-weight: 700;">Investigation Actions & Tasks</h4>
-          <button class="btn-secondary" id="btn-start-review" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">▶ Start Review</button>
-        </div>
-        <div class="action-list" id="review-actions-container" style="margin-bottom: 1.25rem;">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">No review tasks assigned.</p>
-        </div>
-
-        <!-- Evidence Inspection Checklist -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">Evidence Inspection Records</h4>
-        <div class="evidence-list" id="review-evidence-inspection-list" style="margin-bottom: 1.25rem;">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">No evidence items available to inspect.</p>
-        </div>
-
-        <!-- Append-Only Review Notes -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">Reviewer Notes (Append-Only Audit Log)</h4>
-        <div class="evidence-item" style="margin-bottom: 1.25rem;">
-          <div id="review-notes-container" style="margin-bottom: 0.75rem; max-height: 160px; overflow-y: auto;">
-            <p style="color: var(--text-faint); font-size: 0.85rem;">No notes recorded yet.</p>
-          </div>
-          <div style="display: flex; gap: 0.5rem;">
-            <input type="text" id="review-note-input" placeholder="Add immutable review note or observation..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-main); padding: 0.4rem 0.6rem; font-size: 0.85rem;">
-            <button class="btn-secondary" id="btn-add-note" style="padding: 0.4rem 0.8rem; font-size: 0.82rem;">Add Note</button>
-          </div>
-        </div>
-
-        <!-- Human Decision & Lifecycle Action Controls -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">Record Review Decision</h4>
-        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
-          <button class="btn-primary" id="btn-decide-confirm" style="background: rgba(16, 185, 129, 0.2); border: 1px solid var(--status-confirmed); color: var(--status-confirmed); padding: 0.5rem 0.9rem; font-size: 0.82rem;">✓ Confirm Resolution</button>
-          <button class="btn-secondary" id="btn-decide-more-evidence" style="padding: 0.5rem 0.9rem; font-size: 0.82rem;">📋 Request More Evidence</button>
-          <button class="btn-secondary" id="btn-decide-escalate" style="background: rgba(239, 68, 68, 0.15); border: 1px solid var(--status-contradicted); color: var(--status-contradicted); padding: 0.5rem 0.9rem; font-size: 0.82rem;">⚠️ Escalate Case</button>
-          <button class="btn-secondary" id="btn-decide-resolve" style="padding: 0.5rem 0.9rem; font-size: 0.82rem;">🔒 Mark Resolved</button>
-          <button class="btn-secondary" id="btn-decide-close" style="padding: 0.5rem 0.9rem; font-size: 0.82rem;">🛑 Close & Seal Review</button>
-        </div>
-
-        <!-- Tamper-Evident Audit Trail -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <h4 style="font-size: 0.9rem; font-weight: 700;">Immutable Cryptographic Audit Trail</h4>
-          <button class="btn-secondary" id="btn-verify-audit" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">🛡️ Verify Audit Chain</button>
-        </div>
-        <div id="audit-verify-status" style="display: none; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; border-radius: var(--radius-sm); font-size: 0.82rem;"></div>
-        <div id="audit-timeline-container" style="max-height: 220px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.78rem;">
-          <p style="color: var(--text-faint);">No audit events recorded.</p>
-        </div>
-      </div>
-
-      <!-- Panel: AI Finance Controller Decision Intelligence -->
-      <div class="detail-panel" id="panel-controller">
-        <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-          <div class="metric-card" style="flex: 1; min-width: 200px;">
-            <div class="metric-label">Controller Risk Level</div>
-            <div class="metric-val" id="controller-risk-badge" style="color: var(--status-confirmed); font-size: 1.2rem;">LOW</div>
-          </div>
-          <div class="metric-card" style="flex: 1; min-width: 200px;">
-            <div class="metric-label">Primary Action Verdict</div>
-            <div class="metric-val" id="controller-action-badge" style="color: var(--accent-primary); font-size: 1.1rem;">CONFIRM_RECONCILIATION</div>
-          </div>
-          <div class="metric-card" style="flex: 1; min-width: 200px;">
-            <div class="metric-label">Human Review Status</div>
-            <div class="metric-val" id="controller-review-req" style="color: var(--status-confirmed); font-size: 1.1rem;">Not Required</div>
-          </div>
-        </div>
-
-        <div class="evidence-item" style="margin-bottom: 1.25rem; border-left: 3px solid var(--accent-primary);">
-          <strong style="color: var(--accent-secondary); font-size: 0.95rem;">Executive Controller Brief</strong>
-          <p id="controller-exec-brief" style="font-size: 0.88rem; color: var(--text-main); margin-top: 0.4rem; line-height: 1.6;">
-            Select a case to inspect controller intelligence and decision recommendations.
-          </p>
-        </div>
-
-        <!-- Prioritized Actions List -->
-        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">Prioritized Action Directives</h4>
-        <div class="action-list" id="controller-actions-list" style="margin-bottom: 1.5rem;">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">No actions required.</p>
-        </div>
-
-        <!-- Interactive AI Controller Grounded Q&A -->
-        <div class="evidence-item" style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.3);">
-          <strong style="color: #a5b4fc; font-size: 0.95rem;">💬 Ask AI Finance Controller</strong>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; margin-bottom: 0.75rem;">
-            Ask questions grounded strictly in deterministic reconciliation facts (e.g., "Why is review required?", "What is the biggest risk?").
-          </p>
-          <div style="display: flex; gap: 0.5rem;">
-            <input type="text" id="controller-query-input" placeholder="Ask a question about this financial case..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-main); padding: 0.5rem 0.75rem; font-size: 0.88rem;">
-            <button class="btn-primary" id="btn-ask-controller" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Ask</button>
-          </div>
-          <div id="controller-query-answer" style="display: none; margin-top: 1rem; padding: 0.75rem; background: var(--bg-surface); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-main); white-space: pre-wrap;"></div>
-        </div>
-      </div>
-
-      <!-- Panel: Evidence -->
-      <div class="detail-panel" id="panel-evidence">
-        <div class="evidence-list" id="evidence-list-container">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">No evidence items loaded.</p>
-        </div>
-      </div>
-
-      <!-- Panel: Matching Topology -->
-      <div class="detail-panel" id="panel-matching">
-        <div id="matching-details-container">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">No matching relationships evaluated.</p>
-        </div>
-      </div>
-
-      <!-- Panel: Contradictions -->
-      <div class="detail-panel" id="panel-contradictions">
-        <div class="disc-list" id="contradictions-list-container">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">No contradictions detected.</p>
-        </div>
-      </div>
-
-      <!-- Panel: Confidence Factors -->
-      <div class="detail-panel" id="panel-factors">
-        <div class="factor-list" id="factors-list-container">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">No confidence factors calculated.</p>
-        </div>
-      </div>
-
-      <!-- Panel: Recommended Actions -->
-      <div class="detail-panel" id="panel-actions">
-        <div class="action-list" id="actions-list-container">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">No recommended actions.</p>
-        </div>
-      </div>
-
-      <!-- Panel: Provenance -->
-      <div class="detail-panel" id="panel-provenance">
-        <div id="provenance-details-container">
-          <p style="color: var(--text-faint); font-size: 0.88rem;">Provenance trace will appear once a case is reconciled.</p>
-        </div>
-      </div>
-
-      <!-- Panel: Text & JSON Report -->
-      <div class="detail-panel" id="panel-report">
-        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-          <button class="tab-btn active" id="btn-show-text-report">Formatted Text Report</button>
-          <button class="tab-btn" id="btn-show-json-report">Structured JSON</button>
-        </div>
-        <div class="terminal-box" id="report-terminal">Select a case to inspect report outputs.</div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <p>VERITY — Financial Truth, Reconstructed &copy; 2026. Razorpay AI Buildathon 2026 | Track: AI Finance Controller.</p>
-  </footer>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
