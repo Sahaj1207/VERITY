@@ -1593,15 +1593,113 @@
 
             <!-- Grounded Controller Q&A -->
             <div class="card" style="padding: 1.25rem; background-color: var(--surface-container-low); border: 1px solid var(--outline-variant);">
-              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-                <span class="material-symbols-outlined" style="color: var(--primary); font-size: 1.25rem;">chat</span>
-                <strong class="font-label-caps" style="color: var(--primary); font-size: 0.8125rem;">ASK AI FINANCE CONTROLLER</strong>
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="material-symbols-outlined" style="color: var(--primary); font-size: 1.25rem;">chat</span>
+                  <strong class="font-label-caps" style="color: var(--primary); font-size: 0.8125rem;">ASK AI FINANCE CONTROLLER</strong>
+                </div>
+                <span class="badge badge-low" style="font-size: 0.68rem; font-family: var(--font-mono);">GROUNDED CASE Q&amp;A</span>
               </div>
               <p class="font-body-sm" style="color: var(--on-surface-variant); margin-bottom: 0.75rem;">
-                Query the controller regarding grounded reconciliation facts, variance causes, and policy directives.
+                Grounded case intelligence · Deterministic answers
               </p>
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <input type="text" class="input-field" id="controller-query-input" placeholder="Ask a question grounded in this case's financial facts..." style="flex: 1; min-width: 200px; font-size: 0.8125rem;">
+
+              <!-- Supported questions / Ask about this case Guide -->
+              <div class="ctrl-qa-guide" id="controller-qa-guide">
+                <div class="ctrl-qa-guide-header">
+                  <div class="ctrl-qa-guide-title-row">
+                    <span class="material-symbols-outlined" style="font-size: 0.95rem; color: #60a5fa;">help_outline</span>
+                    <strong class="ctrl-qa-guide-title">Ask about this case</strong>
+                  </div>
+                  <span class="ctrl-qa-guide-subtitle">Select a question or ask about the facts available in this case.</span>
+                </div>
+
+                <!-- Category Control Bar (Tabs) -->
+                <div class="ctrl-qa-category-bar" role="tablist" aria-label="Question Categories">
+                  <button type="button" class="ctrl-qa-category-btn" data-category="decision" role="tab" aria-expanded="false" aria-controls="ctrl-qa-panel-decision">
+                    <span class="material-symbols-outlined" style="font-size: 0.85rem;">gavel</span>
+                    <span>Decision</span>
+                  </button>
+                  <button type="button" class="ctrl-qa-category-btn" data-category="financial" role="tab" aria-expanded="false" aria-controls="ctrl-qa-panel-financial">
+                    <span class="material-symbols-outlined" style="font-size: 0.85rem;">account_balance</span>
+                    <span>Financial</span>
+                  </button>
+                  <button type="button" class="ctrl-qa-category-btn" data-category="evidence" role="tab" aria-expanded="false" aria-controls="ctrl-qa-panel-evidence">
+                    <span class="material-symbols-outlined" style="font-size: 0.85rem;">receipt_long</span>
+                    <span>Evidence</span>
+                  </button>
+                  <button type="button" class="ctrl-qa-category-btn" data-category="risk" role="tab" aria-expanded="false" aria-controls="ctrl-qa-panel-risk">
+                    <span class="material-symbols-outlined" style="font-size: 0.85rem;">shield</span>
+                    <span>Risk &amp; Policy</span>
+                  </button>
+                  <button type="button" class="ctrl-qa-category-btn" data-category="executive" role="tab" aria-expanded="false" aria-controls="ctrl-qa-panel-executive">
+                    <span class="material-symbols-outlined" style="font-size: 0.85rem;">badge</span>
+                    <span>Executive</span>
+                  </button>
+                </div>
+
+                <!-- Expandable Question Panels Container -->
+                <div class="ctrl-qa-panels-container">
+                  <!-- Category Panel: Decision -->
+                  <div class="ctrl-qa-panel" id="ctrl-qa-panel-decision" data-category="decision" role="tabpanel" style="display: none;">
+                    <div class="ctrl-qa-chip-row">
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Why was this case confirmed?">Why was this case confirmed?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Why does this case require human review?">Why does this case require human review?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What decision did the Controller make?">What decision did the Controller make?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Is this case safe to settle?">Is this case safe to settle?</button>
+                    </div>
+                  </div>
+
+                  <!-- Category Panel: Financial -->
+                  <div class="ctrl-qa-panel" id="ctrl-qa-panel-financial" data-category="financial" role="tabpanel" style="display: none;">
+                    <div class="ctrl-qa-chip-row">
+                      <button type="button" class="ctrl-qa-question-chip" data-question="How much was claimed?">How much was claimed?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="How much was matched?">How much was matched?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="How much remains outstanding?">How much remains outstanding?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What caused the variance?">What caused the variance?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What is the financial discrepancy?">What is the financial discrepancy?</button>
+                    </div>
+                  </div>
+
+                  <!-- Category Panel: Evidence -->
+                  <div class="ctrl-qa-panel" id="ctrl-qa-panel-evidence" data-category="evidence" role="tabpanel" style="display: none;">
+                    <div class="ctrl-qa-chip-row">
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Which evidence supports the decision?">Which evidence supports the decision?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Which transaction matched the claim?">Which transaction matched the claim?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What evidence caused the contradiction?">What evidence caused the contradiction?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Show me the evidence behind this decision.">Show me the evidence behind this decision.</button>
+                    </div>
+                  </div>
+
+                  <!-- Category Panel: Risk & Policy -->
+                  <div class="ctrl-qa-panel" id="ctrl-qa-panel-risk" data-category="risk" role="tabpanel" style="display: none;">
+                    <div class="ctrl-qa-chip-row">
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What is the risk level?">What is the risk level?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What policy applies to this case?">What policy applies to this case?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What action should the Controller take?">What action should the Controller take?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Why was this escalated?">Why was this escalated?</button>
+                    </div>
+                  </div>
+
+                  <!-- Category Panel: Executive -->
+                  <div class="ctrl-qa-panel" id="ctrl-qa-panel-executive" data-category="executive" role="tabpanel" style="display: none;">
+                    <div class="ctrl-qa-chip-row">
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Explain this case like a CFO.">Explain this case like a CFO.</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="Give me an executive summary.">Give me an executive summary.</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What should management know?">What should management know?</button>
+                      <button type="button" class="ctrl-qa-question-chip" data-question="What requires attention?">What requires attention?</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ctrl-qa-boundary-note">
+                  <span class="material-symbols-outlined" style="font-size: 0.85rem; color: #64748b;">info</span>
+                  <span>Grounded in the available case facts. Not a general-purpose chatbot.</span>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.85rem;">
+                <input type="text" class="input-field" id="controller-query-input" placeholder="Ask about this case..." style="flex: 1; min-width: 200px; font-size: 0.8125rem;">
                 <button class="btn-primary" id="btn-ask-controller" style="font-size: 0.8125rem;">Ask Controller</button>
               </div>
               <div id="controller-query-answer" style="display: none; margin-top: 0.75rem; font-size: 0.8125rem;"></div>

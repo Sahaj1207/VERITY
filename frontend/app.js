@@ -798,6 +798,51 @@ function initControllerQA() {
       if (e.key === "Enter") submitControllerQuery(queryInput.value);
     });
   }
+
+  // Bind category toggle tabs
+  const categoryBtns = document.querySelectorAll(".ctrl-qa-category-btn");
+  const panels = document.querySelectorAll(".ctrl-qa-panel");
+
+  categoryBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetCat = btn.getAttribute("data-category");
+      const isAlreadyActive = btn.classList.contains("active");
+
+      // Reset all buttons & panels
+      categoryBtns.forEach((b) => {
+        b.classList.remove("active");
+        b.setAttribute("aria-expanded", "false");
+      });
+      panels.forEach((p) => {
+        p.style.display = "none";
+      });
+
+      // If it was not active, expand the selected category panel
+      if (!isAlreadyActive && targetCat) {
+        btn.classList.add("active");
+        btn.setAttribute("aria-expanded", "true");
+        const targetPanel = document.querySelector(`.ctrl-qa-panel[data-category="${targetCat}"]`);
+        if (targetPanel) {
+          targetPanel.style.display = "block";
+        }
+      }
+    });
+  });
+
+  // Bind clickable example question chips
+  const questionChips = document.querySelectorAll(".ctrl-qa-question-chip");
+  questionChips.forEach((chip) => {
+    chip.addEventListener("click", (e) => {
+      e.preventDefault();
+      const q = chip.getAttribute("data-question") || chip.innerText.trim();
+      if (queryInput) {
+        queryInput.value = q;
+        queryInput.focus();
+        queryInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
+  });
 }
 
 function formatControllerAnswer(rawText) {
@@ -893,7 +938,7 @@ async function submitControllerQuery(query) {
         <div style="margin-bottom: 0.5rem;">${formatControllerAnswer(data.answer)}</div>
         ${gIds.length ? `
           <div style="margin-top: 0.5rem; padding-top: 0.4rem; border-top: 1px dashed var(--outline-variant); font-size: 0.74rem; color: var(--on-surface-variant); font-family: var(--font-mono); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-            <strong style="color: var(--primary);">Deterministic Grounding:</strong>
+            <strong style="color: var(--primary); font-size: 0.75rem; letter-spacing: 0.02em;">Grounding:</strong>
             ${gIds.map((gid) => `<span class="ctrl-grounding-chip">${gid}</span>`).join("")}
           </div>
         ` : `
