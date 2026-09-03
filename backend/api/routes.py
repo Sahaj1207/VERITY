@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import tempfile
+import time
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -17,6 +18,8 @@ from backend.api.dependencies import (
     get_case_store,
 )
 from backend.api.models import (
+    BenchmarkCaseSummary,
+    BenchmarkRunResponse,
     CaseCreateRequest,
     CaseResponse,
     DemoCaseSummaryResponse,
@@ -131,6 +134,119 @@ def run_demo_case(
 
 
 # -------------------------------------------------------------
+# TRACK 04 BENCHMARK BATCH RECONCILIATION ENDPOINTS
+# -------------------------------------------------------------
+
+@router.post("/api/v1/benchmark/run", response_model=BenchmarkRunResponse, tags=["Track 04 Benchmark"])
+def run_benchmark_batch(
+    service: CaseProcessingService = Depends(get_case_service),
+) -> BenchmarkRunResponse:
+    """Executes the full 96-case ground-truth benchmark through the deterministic pipeline.
+
+    Computes real-time measured match/resolution rates, status distribution, and honest
+    exception breakdown across the synthetic batch without modifying persistent state.
+    """
+    from data.benchmark.loader import load_benchmark_cases
+    benchmark_cases = load_benchmark_cases()
+
+    status_counts: Dict[str, int] = {}
+    exception_counts: Dict[str, int] = {}
+    category_stats: Dict[str, Dict[str, Any]] = {}
+
+    total_evidence = 0
+    total_claims = 0
+    total_transactions = 0
+    total_claimed = 0.0
+    total_reconciled = 0.0
+    total_outstanding = 0.0
+    case_summaries: List[BenchmarkCaseSummary] = []
+
+    start_time = time.perf_counter()
+
+    for bc in benchmark_cases:
+        total_evidence += len(bc.evidence)
+        total_claims += len(bc.claims)
+        total_transactions += len(bc.transactions)
+
+        case_in = CaseInput(
+            case_id=bc.case_id,
+            evidence_items=bc.evidence,
+            transactions=bc.transactions,
+            entities=[bc.entity] if bc.entity else [],
+            metadata={"precomputed_claims": [cl.model_dump() for cl in bc.claims]} if bc.claims else {},
+        )
+        res = service.process_case(case_in)
+
+        st = res.status
+        status_counts[st] = status_counts.get(st, 0) + 1
+
+        fin = res.financial_summary
+        claimed = fin.get("claimed_amount") or 0.0
+        matched = fin.get("matched_amount") or 0.0
+        outstanding = fin.get("outstanding_amount") or 0.0
+
+        total_claimed += claimed
+        total_reconciled += matched
+        total_outstanding += outstanding
+
+        disc_types: List[str] = []
+        if res.report and res.report.contradiction_summary:
+            for c in res.report.contradiction_summary:
+                dtype = c.discrepancy_type
+                disc_types.append(dtype)
+                exception_counts[dtype] = exception_counts.get(dtype, 0) + 1
+
+        cat = bc.category
+        if cat not in category_stats:
+            category_stats[cat] = {"total": 0, "confirmed": 0, "exceptions": 0, "claimed": 0.0, "matched": 0.0}
+        category_stats[cat]["total"] += 1
+        category_stats[cat]["claimed"] += claimed
+        category_stats[cat]["matched"] += matched
+        if st == "CONFIRMED":
+            category_stats[cat]["confirmed"] += 1
+        else:
+            category_stats[cat]["exceptions"] += 1
+
+        review_req = res.status in ("CONTRADICTED", "AMBIGUOUS", "UNVERIFIABLE", "UNMATCHED")
+
+        case_summaries.append(BenchmarkCaseSummary(
+            case_id=bc.case_id,
+            category=bc.category,
+            scenario_title=bc.scenario_title,
+            status=st,
+            confidence=res.confidence_score,
+            claimed_amount=claimed,
+            matched_amount=matched,
+            outstanding_amount=outstanding,
+            discrepancy_count=len(disc_types),
+            discrepancy_types=disc_types,
+            human_review_required=review_req,
+            duration_ms=res.total_execution_time_ms,
+        ))
+
+    total_time_ms = (time.perf_counter() - start_time) * 1000.0
+    avg_latency_ms = total_time_ms / len(benchmark_cases) if benchmark_cases else 0.0
+    match_rate = (total_reconciled / total_claimed * 100.0) if total_claimed > 0.0 else 0.0
+
+    return BenchmarkRunResponse(
+        total_cases=len(benchmark_cases),
+        total_evidence_items=total_evidence,
+        total_claims=total_claims,
+        total_transactions=total_transactions,
+        total_claimed_value=round(total_claimed, 2),
+        total_reconciled_value=round(total_reconciled, 2),
+        total_outstanding_value=round(total_outstanding, 2),
+        monetary_match_rate=round(match_rate, 2),
+        status_distribution=status_counts,
+        exception_breakdown=exception_counts,
+        category_breakdown=category_stats,
+        total_processing_time_ms=round(total_time_ms, 2),
+        average_latency_ms=round(avg_latency_ms, 2),
+        cases=case_summaries,
+    )
+
+
+# -------------------------------------------------------------
 # CASE PROCESSING ENDPOINTS
 # -------------------------------------------------------------
 
@@ -207,16 +323,16 @@ async def submit_files_evidence(
         for file in files:
             orig_name = file.filename or f"evidence_{uuid.uuid4().hex[:6]}"
             sanitized_name = SecurityValidator.sanitize_filename(orig_name)
-            
+
             # Extension validation
             SecurityValidator.validate_file_extension(sanitized_name)
-            
+
             # Content-type validation
             SecurityValidator.validate_content_type(file.content_type, sanitized_name)
 
             file_dest = Path(temp_dir) / sanitized_name
             content = await file.read()
-            
+
             # Size validation
             SecurityValidator.validate_file_size(len(content), settings.max_upload_bytes, sanitized_name)
 
@@ -1462,7 +1578,3 @@ def export_case_journal_voucher_endpoint(
         }
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-
-
-
-

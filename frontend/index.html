@@ -178,6 +178,134 @@
           </div>
         </section>
 
+        <!-- Section: Track 04 Batch Reconciliation Proof (50+ Record Synthetic Batch) -->
+        <section class="card track04-batch-card" id="cc-track04-batch-section" style="padding: 1.25rem 1.5rem; margin-bottom: 1.75rem; border-left: 4px solid var(--primary); background: var(--surface-container-lowest);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                <span class="badge" style="background: rgba(14, 165, 233, 0.12); color: var(--primary); font-weight: 700; font-size: 0.7rem;">TRACK 04</span>
+                <h2 class="font-headline-md" style="font-size: 1.05rem; color: var(--primary); display: flex; align-items: center; gap: 0.4rem; margin: 0;">
+                  <span class="material-symbols-outlined" style="font-size: 1.2rem; color: var(--primary);">dataset</span>
+                  <span>BATCH RECONCILIATION PROOF</span>
+                </h2>
+              </div>
+              <p class="font-body-sm" style="color: var(--on-surface-variant); margin-top: 0.2rem;">
+                Deterministic finance-ops loop across a 50+ record synthetic batch with measured match rate and honest exception disclosure.
+              </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span class="badge" id="batch-record-count-badge" style="font-size: 0.72rem; background: var(--surface-container-high); color: var(--on-surface-variant);">NOT RUN YET</span>
+              <button class="btn-primary" id="btn-run-batch-reconciliation" style="padding: 0.45rem 0.9rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.35rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">play_arrow</span>
+                <span>Run Batch Reconciliation</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Batch Metrics Grid -->
+          <div class="batch-kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: var(--surface-container); border: 1px solid var(--outline-variant);">
+              <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.68rem;">Synthetic Batch Volume</div>
+              <div class="font-data-lg" id="batch-cases-count" style="color: var(--primary); font-size: 1.5rem; font-weight: 800; margin: 0.25rem 0 0.1rem 0;">--</div>
+              <div class="font-body-sm" id="batch-artifacts-count" style="color: var(--on-surface-variant); font-size: 0.74rem;">Ready to evaluate synthetic batch</div>
+            </div>
+            <div style="padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: var(--surface-container); border: 1px solid var(--outline-variant);">
+              <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.68rem;">Reconciled Value vs Claimed</div>
+              <div class="font-data-lg" id="batch-reconciled-value" style="color: var(--status-confirmed); font-size: 1.35rem; font-weight: 800; margin: 0.25rem 0 0.1rem 0;">-- <span style="font-size: 0.85rem; color: var(--on-surface-variant); font-weight: normal;">/ --</span></div>
+              <div class="font-body-sm" id="batch-outstanding-value" style="color: var(--on-surface-variant); font-size: 0.74rem;">Click 'Run Batch Reconciliation' to compute</div>
+            </div>
+            <div style="padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: var(--surface-container); border: 1px solid var(--outline-variant);">
+              <div class="font-label-caps" style="color: var(--on-surface-variant); font-size: 0.68rem;">Measured Monetary Match Rate</div>
+              <div class="font-data-lg" id="batch-match-rate" style="color: var(--primary); font-size: 1.5rem; font-weight: 800; margin: 0.25rem 0 0.1rem 0;">--</div>
+              <div class="font-body-sm" id="batch-latency-info" style="color: var(--on-surface-variant); font-size: 0.74rem;">Deterministic Execution &bull; Awaiting trigger</div>
+            </div>
+          </div>
+
+          <!-- Status & Exceptions 2-Column Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 1rem;">
+            <!-- Column 1: Status Distribution -->
+            <div style="padding: 1rem; border-radius: var(--radius-sm); background: var(--surface-container-low); border: 1px solid var(--outline-variant);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="font-label-caps" style="color: var(--primary); font-weight: 700; font-size: 0.72rem;">RESOLUTION &bull; STATUS DISTRIBUTION</span>
+                <span class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.72rem;">Case Outcomes</span>
+              </div>
+              <div id="batch-status-bars" style="display: flex; flex-direction: column; gap: 0.45rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                  <span style="display: flex; align-items: center; gap: 0.4rem; color: var(--on-surface);"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-confirmed);"></span> CONFIRMED (Automated Settlement)</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--status-confirmed);" id="batch-count-confirmed">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                  <span style="display: flex; align-items: center; gap: 0.4rem; color: var(--on-surface);"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-contradicted);"></span> CONTRADICTED (Discrepancy Flagged)</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--status-contradicted);" id="batch-count-contradicted">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                  <span style="display: flex; align-items: center; gap: 0.4rem; color: var(--on-surface);"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-unverifiable);"></span> UNVERIFIABLE (Missing Rail Evidence)</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--status-unverifiable);" id="batch-count-unverifiable">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                  <span style="display: flex; align-items: center; gap: 0.4rem; color: var(--on-surface);"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-unmatched);"></span> UNMATCHED (No Ledger Record)</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--status-unmatched);" id="batch-count-unmatched">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                  <span style="display: flex; align-items: center; gap: 0.4rem; color: var(--on-surface);"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-partial);"></span> PARTIALLY SETTLED (Tranche Outstanding)</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--status-partial);" id="batch-count-partial">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 2: Exception / Discrepancy Breakdown -->
+            <div style="padding: 1rem; border-radius: var(--radius-sm); background: var(--surface-container-low); border: 1px solid var(--outline-variant);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="font-label-caps" style="color: var(--warning); font-weight: 700; font-size: 0.72rem;">EXCEPTION / DISCREPANCY BREAKDOWN</span>
+                <span class="font-body-sm" style="color: var(--on-surface-variant); font-size: 0.72rem;">Discrepancy Occurrences</span>
+              </div>
+              <div id="batch-exceptions-list" style="display: flex; flex-direction: column; gap: 0.45rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                  <span style="color: var(--on-surface);">Reference Mismatches (UTR / Invoice Typo)</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--warning);" id="batch-exc-ref">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                  <span style="color: var(--on-surface);">Date &amp; Timing Mismatches (Out of Window)</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--warning);" id="batch-exc-date">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                  <span style="color: var(--on-surface);">Conflicting / Competing Counterparty Claims</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: var(--warning);" id="batch-exc-claims">--</span>
+                </div>
+              </div>
+              <div style="margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px dashed var(--outline-variant); font-size: 0.72rem; color: var(--on-surface-variant);">
+                &bull; Counts reflect total discrepancy signals detected across all cases (multiple discrepancies may occur in one case). Zero false confirmations.
+              </div>
+            </div>
+          </div>
+
+          <!-- Collapsible Batch Drilldown -->
+          <details style="margin-top: 0.5rem; font-size: 0.78rem;" id="batch-drilldown-details">
+            <summary style="cursor: pointer; color: var(--primary); font-weight: 600; padding: 0.35rem 0;">
+              View Synthetic Batch Cases &amp; Exception Drilldown
+            </summary>
+            <div style="margin-top: 0.75rem; max-height: 280px; overflow-y: auto; border: 1px solid var(--outline-variant); border-radius: var(--radius-sm);">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+                <thead style="background: var(--surface-container-high); position: sticky; top: 0;">
+                  <tr style="border-bottom: 1px solid var(--outline-variant); text-align: left; color: var(--on-surface-variant);">
+                    <th style="padding: 0.4rem 0.6rem;">Case ID</th>
+                    <th style="padding: 0.4rem 0.6rem;">Category</th>
+                    <th style="padding: 0.4rem 0.6rem;">Scenario</th>
+                    <th style="padding: 0.4rem 0.6rem; text-align: right;">Claimed</th>
+                    <th style="padding: 0.4rem 0.6rem; text-align: right;">Matched</th>
+                    <th style="padding: 0.4rem 0.6rem; text-align: center;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="batch-cases-tbody">
+                  <tr>
+                    <td colspan="6" style="padding: 1.5rem; text-align: center; color: var(--on-surface-variant);">Click 'Run Batch Reconciliation' to load cases.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </section>
+
         <!-- Section 2: Signature Investigation Pipeline -->
         <section class="card" id="cc-investigation-pipeline" style="padding: 1.25rem 1.5rem; margin-bottom: 1.75rem;">
           <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">

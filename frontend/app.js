@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initControllerQA();
   initReviewWorkspace();
   initPortfolioWorkspace();
+  initBenchmarkBatch();
   setWorkspace("command-center");
   checkSystemStatus();
   healthInterval = setInterval(checkSystemStatus, 15000);
@@ -5317,5 +5318,123 @@ function previousReplayStep() {
   if (!truthReplaySnapshot) return;
   if (currentReplayStep > 0) {
     renderReplayStep(currentReplayStep - 1);
+  }
+}
+
+// =============================================================
+// TRACK 04 BENCHMARK BATCH RECONCILIATION
+// =============================================================
+
+function initBenchmarkBatch() {
+  const runBtn = document.getElementById("btn-run-batch-reconciliation");
+  if (runBtn) {
+    runBtn.addEventListener("click", () => {
+      runBenchmarkBatch();
+    });
+  }
+}
+
+async function runBenchmarkBatch() {
+  const runBtn = document.getElementById("btn-run-batch-reconciliation");
+  const badgeEl = document.getElementById("batch-record-count-badge");
+  const casesCountEl = document.getElementById("batch-cases-count");
+  const artifactsCountEl = document.getElementById("batch-artifacts-count");
+  const reconciledValEl = document.getElementById("batch-reconciled-value");
+  const outstandingValEl = document.getElementById("batch-outstanding-value");
+  const matchRateEl = document.getElementById("batch-match-rate");
+  const latencyEl = document.getElementById("batch-latency-info");
+  const tbody = document.getElementById("batch-cases-tbody");
+
+  if (runBtn) {
+    runBtn.disabled = true;
+    runBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem; animation: spin 1s linear infinite;">sync</span> <span>Processing 96 Cases…</span>`;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/benchmark/run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    if (!res.ok) {
+      throw new Error(`Benchmark execution failed with HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    // Update badge & counts
+    if (badgeEl) badgeEl.textContent = `${data.total_cases} CASES EVALUATED`;
+    if (casesCountEl) casesCountEl.textContent = `${data.total_cases} Cases`;
+    if (artifactsCountEl) artifactsCountEl.textContent = `${data.total_evidence_items} Evidences • ${data.total_claims} Claims • ${data.total_transactions} Txns`;
+
+    // Update monetary values
+    const recLakhs = (data.total_reconciled_value / 100000).toFixed(2);
+    const claimLakhs = (data.total_claimed_value / 100000).toFixed(2);
+    if (reconciledValEl) {
+      reconciledValEl.innerHTML = `₹${recLakhs}L <span style="font-size: 0.85rem; color: var(--on-surface-variant); font-weight: normal;">/ ₹${claimLakhs}L</span>`;
+    }
+    if (outstandingValEl) {
+      outstandingValEl.textContent = `Outstanding / Discrepant: ₹${data.total_outstanding_value.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    }
+
+    // Update match rate & latency
+    if (matchRateEl) matchRateEl.textContent = `${data.monetary_match_rate.toFixed(2)}%`;
+    if (latencyEl) latencyEl.textContent = `Deterministic Execution • ${data.total_processing_time_ms.toFixed(0)}ms total (~${data.average_latency_ms.toFixed(1)}ms/case)`;
+
+    // Update status distribution counts
+    const dist = data.status_distribution || {};
+    const countConfirmed = document.getElementById("batch-count-confirmed");
+    const countContradicted = document.getElementById("batch-count-contradicted");
+    const countUnverifiable = document.getElementById("batch-count-unverifiable");
+    const countUnmatched = document.getElementById("batch-count-unmatched");
+    const countPartial = document.getElementById("batch-count-partial");
+
+    if (countConfirmed) countConfirmed.textContent = dist["CONFIRMED"] || 0;
+    if (countContradicted) countContradicted.textContent = dist["CONTRADICTED"] || 0;
+    if (countUnverifiable) countUnverifiable.textContent = dist["UNVERIFIABLE"] || 0;
+    if (countUnmatched) countUnmatched.textContent = dist["UNMATCHED"] || 0;
+    if (countPartial) countPartial.textContent = dist["PARTIALLY_SETTLED"] || 0;
+
+    // Update exceptions breakdown
+    const exc = data.exception_breakdown || {};
+    const excRef = document.getElementById("batch-exc-ref");
+    const excDate = document.getElementById("batch-exc-date");
+    const excClaims = document.getElementById("batch-exc-claims");
+
+    if (excRef) excRef.textContent = exc["REFERENCE_MISMATCH"] || 0;
+    if (excDate) excDate.textContent = exc["DATE_MISMATCH"] || 0;
+    if (excClaims) excClaims.textContent = exc["CONFLICTING_CLAIMS"] || 0;
+
+    // Render drilldown table rows
+    if (tbody && data.cases) {
+      tbody.innerHTML = data.cases.map(c => {
+        let statusBadgeClass = "badge-partial";
+        if (c.status === "CONFIRMED") statusBadgeClass = "badge-confirmed";
+        else if (c.status === "CONTRADICTED") statusBadgeClass = "badge-contradicted";
+        else if (c.status === "UNVERIFIABLE") statusBadgeClass = "badge-unverifiable";
+        else if (c.status === "UNMATCHED") statusBadgeClass = "badge-unmatched";
+
+        return `
+          <tr style="border-bottom: 1px solid var(--outline-variant);">
+            <td style="padding: 0.4rem 0.6rem; font-family: var(--font-mono); font-weight: 600; color: var(--primary);">${escapeReplayHtml(c.case_id)}</td>
+            <td style="padding: 0.4rem 0.6rem; color: var(--on-surface-variant);">${escapeReplayHtml(c.category)}</td>
+            <td style="padding: 0.4rem 0.6rem; color: var(--on-surface); font-weight: 500;">${escapeReplayHtml(c.scenario_title)}</td>
+            <td style="padding: 0.4rem 0.6rem; text-align: right; font-family: var(--font-mono);">₹${(c.claimed_amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+            <td style="padding: 0.4rem 0.6rem; text-align: right; font-family: var(--font-mono); color: var(--status-confirmed); font-weight: 600;">₹${c.matched_amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+            <td style="padding: 0.4rem 0.6rem; text-align: center;"><span class="badge ${statusBadgeClass}" style="font-size: 0.65rem;">${escapeReplayHtml(c.status)}</span></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    showAlert(`Track 04 Batch complete: ${data.total_cases} cases processed in ${data.total_processing_time_ms.toFixed(0)}ms (${data.monetary_match_rate.toFixed(2)}% matched)`, "success");
+  } catch (err) {
+    console.error("Batch reconciliation run error:", err);
+    showAlert(`Batch run error: ${err.message}`, "error");
+  } finally {
+    if (runBtn) {
+      runBtn.disabled = false;
+      runBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">refresh</span> <span>Re-run Batch Reconciliation</span>`;
+    }
   }
 }

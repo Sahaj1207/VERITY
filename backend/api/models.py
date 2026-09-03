@@ -176,3 +176,41 @@ class CaseResponse(BaseModel):
     warnings: List[str] = Field(default_factory=list)
     errors: List[str] = Field(default_factory=list)
     text_report: str = ""
+
+
+# -------------------------------------------------------------
+# TRACK 04 BENCHMARK BATCH RECONCILIATION MODELS
+# -------------------------------------------------------------
+
+class BenchmarkCaseSummary(BaseModel):
+    """Concise record summary for a benchmark case in a batch run."""
+    case_id: str
+    category: str
+    scenario_title: str
+    status: str
+    confidence: float
+    claimed_amount: Optional[float] = None
+    matched_amount: float = 0.0
+    outstanding_amount: float = 0.0
+    discrepancy_count: int = 0
+    discrepancy_types: List[str] = Field(default_factory=list)
+    human_review_required: bool = False
+    duration_ms: float = 0.0
+
+
+class BenchmarkRunResponse(BaseModel):
+    """Comprehensive, dynamically computed results for the Track 04 benchmark batch."""
+    total_cases: int = Field(..., description="Total synthetic cases evaluated in batch")
+    total_evidence_items: int = Field(default=0, description="Total root evidence items processed")
+    total_claims: int = Field(default=0, description="Total extracted claims evaluated")
+    total_transactions: int = Field(default=0, description="Total ledger transactions verified")
+    total_claimed_value: float = Field(default=0.0, description="Cumulative claimed monetary value INR")
+    total_reconciled_value: float = Field(default=0.0, description="Cumulative verified reconciled value INR")
+    total_outstanding_value: float = Field(default=0.0, description="Cumulative unresolved outstanding balance INR")
+    monetary_match_rate: float = Field(default=0.0, description="Calculated percentage value match rate")
+    status_distribution: Dict[str, int] = Field(default_factory=dict, description="Counts by reconciliation status")
+    exception_breakdown: Dict[str, int] = Field(default_factory=dict, description="Counts of unresolved discrepancy types")
+    category_breakdown: Dict[str, Dict[str, Any]] = Field(default_factory=dict, description="Per-category performance breakdown")
+    total_processing_time_ms: float = Field(default=0.0, description="Total batch execution time in ms")
+    average_latency_ms: float = Field(default=0.0, description="Average per-case execution latency in ms")
+    cases: List[BenchmarkCaseSummary] = Field(default_factory=list, description="Per-case drilldown records")
