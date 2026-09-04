@@ -5373,8 +5373,12 @@ async function runBenchmarkBatch() {
     if (reconciledValEl) {
       reconciledValEl.innerHTML = `₹${recLakhs}L <span style="font-size: 0.85rem; color: var(--on-surface-variant); font-weight: normal;">/ ₹${claimLakhs}L</span>`;
     }
+    const unreconciledVal = Math.max(0, (data.total_claimed_value || 0) - (data.total_reconciled_value || 0));
+    const formattedGap = Number.isInteger(unreconciledVal) || unreconciledVal % 1 === 0
+      ? unreconciledVal.toLocaleString('en-IN')
+      : unreconciledVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (outstandingValEl) {
-      outstandingValEl.textContent = `Outstanding / Discrepant: ₹${data.total_outstanding_value.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      outstandingValEl.textContent = `Unreconciled Value: ₹${formattedGap}`;
     }
 
     // Update match rate & latency
