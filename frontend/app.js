@@ -344,15 +344,7 @@ function initAppShell() {
   // New Investigation CTA
   const newInvBtn = document.getElementById("btn-sidebar-new-investigation");
   if (newInvBtn) {
-    newInvBtn.addEventListener("click", () => {
-      setWorkspace("cases");
-      const dropzone = document.getElementById("file-dropzone");
-      if (dropzone) {
-        setTimeout(() => {
-          dropzone.scrollIntoView({ behavior: "smooth" });
-        }, 50);
-      }
-    });
+    newInvBtn.addEventListener("click", openNewInvestigationWorkspace);
   }
 
   // Export Report Button
@@ -420,6 +412,120 @@ function initAppShell() {
 
   // Explicitly initialize default workspace state
   setWorkspace(currentWorkspace || "command-center");
+}
+
+function openNewInvestigationWorkspace() {
+  closeMobileDrawer();
+
+  // 1. Reset state to clean, unselected investigation
+  currentCaseResult = null;
+  currentControllerBrief = null;
+  currentReviewRecord = null;
+  currentIntelligenceProfile = null;
+  currentRemediationActions = [];
+  currentJournalVoucher = null;
+  selectedFiles = [];
+
+  // 2. Clear input fields and preview
+  const fileInput = document.getElementById("file-input");
+  if (fileInput) fileInput.value = "";
+  const filePreview = document.getElementById("file-list-preview");
+  if (filePreview) filePreview.innerHTML = "";
+  const textInput = document.getElementById("text-evidence-input");
+  if (textInput) textInput.value = "";
+  const jsonInput = document.getElementById("json-case-input");
+  if (jsonInput) jsonInput.value = "";
+
+  // 3. Clear active states on demo scenario buttons
+  document.querySelectorAll(".demo-btn").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".golden-scenario-btn").forEach((b) => b.classList.remove("active"));
+
+  // 4. Reset Case Investigation UI header & hero metrics
+  const activeCaseTag = document.getElementById("active-case-tag-pill");
+  if (activeCaseTag) {
+    activeCaseTag.textContent = "New Investigation";
+    activeCaseTag.className = "badge badge-unverifiable";
+  }
+  const heroTitle = document.getElementById("hero-title");
+  if (heroTitle) heroTitle.textContent = "New Investigation (Provide Evidence)";
+  const heroStatusBadge = document.getElementById("hero-status-badge");
+  if (heroStatusBadge) {
+    heroStatusBadge.className = "status-badge-lg badge-unverifiable";
+    heroStatusBadge.textContent = "READY";
+  }
+  const heroReviewBadge = document.getElementById("hero-review-badge");
+  if (heroReviewBadge) {
+    heroReviewBadge.className = "badge badge-confirmed";
+    heroReviewBadge.textContent = "✓ AWAITING EVIDENCE";
+  }
+  const heroSummary = document.getElementById("hero-summary");
+  if (heroSummary) {
+    heroSummary.textContent = "Upload files, paste text/WhatsApp messages, or provide a JSON payload below, then click 'Reconstruct Financial Truth'.";
+  }
+  const verdictLabel = document.getElementById("case-truth-verdict-label");
+  if (verdictLabel) {
+    verdictLabel.textContent = "AWAITING INGESTION";
+    verdictLabel.style.color = "var(--primary)";
+  }
+  const matchedMetric = document.getElementById("metric-matched");
+  if (matchedMetric) {
+    matchedMetric.textContent = "₹0.00";
+    matchedMetric.style.color = "var(--primary)";
+  }
+  const confVal = document.getElementById("hero-confidence-val");
+  if (confVal) confVal.textContent = "—";
+  const confBar = document.getElementById("hero-confidence-bar");
+  if (confBar) {
+    confBar.style.width = "0%";
+    confBar.style.backgroundColor = "var(--primary)";
+  }
+  const nextActionText = document.getElementById("case-next-action-text");
+  if (nextActionText) nextActionText.textContent = "Submit evidence files or text to begin automated deterministic reconciliation.";
+
+  // Reset lifecycle flow steps
+  document.querySelectorAll(".case-flow-node").forEach((node) => {
+    node.className = "case-flow-node";
+  });
+  const flowFacts = document.getElementById("flow-facts-status");
+  if (flowFacts) flowFacts.textContent = "Pending";
+  const flowTxn = document.getElementById("flow-txn-val");
+  if (flowTxn) flowTxn.textContent = "₹0.00";
+  const flowLedger = document.getElementById("flow-ledger-status");
+  if (flowLedger) flowLedger.textContent = "Pending";
+  const flowRecon = document.getElementById("flow-recon-val");
+  if (flowRecon) flowRecon.textContent = "₹0.00";
+  const flowCtrl = document.getElementById("flow-ctrl-status");
+  if (flowCtrl) flowCtrl.textContent = "Pending";
+
+  // Reset detail containers
+  const evContainer = document.getElementById("evidence-list-container");
+  if (evContainer) evContainer.innerHTML = '<p class="font-body-sm" style="color: var(--on-surface-variant);">No evidence items loaded. Upload files or paste text below.</p>';
+  const matchContainer = document.getElementById("matching-details-container");
+  if (matchContainer) matchContainer.innerHTML = '<p class="font-body-sm" style="color: var(--on-surface-variant);">No active case matching topology loaded.</p>';
+  const actionsContainer = document.getElementById("actions-list-container");
+  if (actionsContainer) actionsContainer.innerHTML = '<p class="font-body-sm" style="color: var(--on-surface-variant);">No actions required.</p>';
+  const contraContainer = document.getElementById("contradictions-list-container");
+  if (contraContainer) contraContainer.innerHTML = '<p style="color: var(--status-confirmed); font-size: 0.88rem;">✓ No contradictions or discrepancies detected.</p>';
+  const factorsContainer = document.getElementById("factors-list-container");
+  if (factorsContainer) factorsContainer.innerHTML = '<p class="font-body-sm" style="color: var(--on-surface-variant);">No confidence factors generated.</p>';
+
+  // 5. Navigate to Cases workspace
+  setWorkspace("cases");
+
+  // 6. Ensure the custom input accordion is open and default tab is active
+  const inputSection = document.querySelector(".input-section");
+  if (inputSection) {
+    const parentDetails = inputSection.closest("details");
+    if (parentDetails) {
+      parentDetails.open = true;
+    }
+    const defaultTabBtn = inputSection.querySelector('.tab-btn[data-tab="tab-upload"]');
+    if (defaultTabBtn) defaultTabBtn.click();
+
+    setTimeout(() => {
+      inputSection.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  }
 }
 
 // -------------------------------------------------------------
