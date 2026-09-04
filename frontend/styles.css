@@ -3282,3 +3282,43 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     font-size: 1.15rem;
   }
 }
+
+/* --------------------------------------------------------------------------
+   INPUT SECTION TABS & TEXTAREA CONTROLS
+   -------------------------------------------------------------------------- */
+.input-section .tab-pane {
+  display: none;
+  width: 100%;
+}
+
+.input-section .tab-pane.active {
+  display: block;
+}
+
+.input-section .textarea-field {
+  width: 100%;
+  min-height: 180px;
+  padding: 0.85rem 1rem;
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+  color: var(--on-surface);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-section .textarea-field:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 35, 111, 0.12);
+}
+
+.input-section .textarea-field::placeholder {
+  color: var(--on-surface-variant);
+  opacity: 0.7;
+  font-family: var(--font-mono, monospace);
+}

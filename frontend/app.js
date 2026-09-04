@@ -802,10 +802,16 @@ function initTabs() {
   document.querySelectorAll(".input-section .tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".input-section .tab-btn").forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".input-section .tab-pane").forEach((p) => p.classList.remove("active"));
+      document.querySelectorAll(".input-section .tab-pane").forEach((p) => {
+        p.classList.remove("active");
+        p.style.display = "none";
+      });
       btn.classList.add("active");
       const targetPane = document.getElementById(btn.dataset.tab);
-      if (targetPane) targetPane.classList.add("active");
+      if (targetPane) {
+        targetPane.classList.add("active");
+        targetPane.style.display = "block";
+      }
     });
   });
 
