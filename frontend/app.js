@@ -900,7 +900,23 @@ function initDropzone() {
 }
 
 function initActionButtons() {
-  document.getElementById("btn-process").addEventListener("click", processCurrentInput);
+  const btnProcess = document.getElementById("btn-process");
+  if (btnProcess) btnProcess.addEventListener("click", processCurrentInput);
+
+  const disputeBtn = document.getElementById("btn-propose-dispute");
+  if (disputeBtn) disputeBtn.addEventListener("click", () => proposeRemediationAction("dispute"));
+
+  const followupBtn = document.getElementById("btn-propose-followup");
+  if (followupBtn) followupBtn.addEventListener("click", () => proposeRemediationAction("followup"));
+
+  const missingBtn = document.getElementById("btn-propose-missing");
+  if (missingBtn) missingBtn.addEventListener("click", () => proposeRemediationAction("missing_advice"));
+
+  const journalBtn = document.getElementById("btn-propose-journal");
+  if (journalBtn) journalBtn.addEventListener("click", () => proposeRemediationAction("journal_voucher"));
+
+  const btnExp = document.getElementById("btn-export-journal");
+  if (btnExp) btnExp.addEventListener("click", exportJournalVoucher);
 }
 
 // -------------------------------------------------------------
@@ -1079,8 +1095,14 @@ async function submitControllerQuery(query) {
 // -------------------------------------------------------------
 // PROCESS CUSTOM INPUT
 // -------------------------------------------------------------
+let isProcessingCurrentInput = false;
+
 async function processCurrentInput() {
-  const activeTab = document.querySelector(".input-section .tab-btn.active").dataset.tab;
+  if (isProcessingCurrentInput) return;
+  isProcessingCurrentInput = true;
+
+  const activeTabEl = document.querySelector(".input-section .tab-btn.active");
+  const activeTab = activeTabEl ? activeTabEl.dataset.tab : null;
   hideAlert();
   setLoading(true);
 
@@ -1089,7 +1111,6 @@ async function processCurrentInput() {
     if (activeTab === "tab-upload") {
       if (!selectedFiles.length) {
         showAlert("Please select at least one valid evidence file to upload.", "warning");
-        setLoading(false);
         return;
       }
       const formData = new FormData();
@@ -1099,10 +1120,9 @@ async function processCurrentInput() {
         body: formData,
       });
     } else if (activeTab === "tab-text") {
-      const textVal = document.getElementById("text-evidence-input").value.trim();
+      const textVal = (document.getElementById("text-evidence-input")?.value || "").trim();
       if (!textVal) {
         showAlert("Please enter financial text or WhatsApp chat content.", "warning");
-        setLoading(false);
         return;
       }
       res = await fetch(`${API_BASE}/api/v1/cases/text`, {
@@ -1111,13 +1131,12 @@ async function processCurrentInput() {
         body: JSON.stringify({ text: textVal }),
       });
     } else if (activeTab === "tab-json") {
-      const jsonVal = document.getElementById("json-case-input").value.trim();
+      const jsonVal = (document.getElementById("json-case-input")?.value || "").trim();
       let parsed;
       try {
         parsed = JSON.parse(jsonVal);
       } catch (e) {
         showAlert("Invalid JSON payload: " + e.message, "error");
-        setLoading(false);
         return;
       }
       res = await fetch(`${API_BASE}/api/v1/cases`, {
@@ -1142,6 +1161,7 @@ async function processCurrentInput() {
     showAlert(`Processing Error: ${err.message}`, "error");
   } finally {
     setLoading(false);
+    isProcessingCurrentInput = false;
   }
 }
 
@@ -3306,9 +3326,11 @@ function renderPortfolioWorkloadTable(workloads) {
 }
 
 let pendingAssignCaseId = null;
+let isSubmittingAssignment = false;
 
 function openAssignModal(caseId) {
   pendingAssignCaseId = caseId;
+  isSubmittingAssignment = false;
   const modal = document.getElementById("modal-assign-reviewer");
   const caseIdEl = document.getElementById("assign-modal-case-id");
   const input = document.getElementById("assign-reviewer-input");
@@ -3335,10 +3357,13 @@ function closeAssignModal() {
   const modal = document.getElementById("modal-assign-reviewer");
   if (modal) modal.style.display = "none";
   pendingAssignCaseId = null;
+  isSubmittingAssignment = false;
 }
 
 async function submitReviewerAssignment() {
+  if (isSubmittingAssignment) return;
   if (!pendingAssignCaseId) return;
+
   const input = document.getElementById("assign-reviewer-input");
   const submitBtn = document.getElementById("btn-submit-assign");
   const reviewer = (input?.value || "").trim();
@@ -3348,6 +3373,7 @@ async function submitReviewerAssignment() {
     return;
   }
 
+  isSubmittingAssignment = true;
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = "Assigning...";
@@ -3379,6 +3405,8 @@ async function submitReviewerAssignment() {
       submitBtn.disabled = false;
       submitBtn.textContent = "Assign Reviewer";
     }
+  } finally {
+    isSubmittingAssignment = false;
   }
 }
 
@@ -3904,18 +3932,31 @@ async function proposeRemediationAction(actionType) {
     return;
   }
   const cid = currentCaseResult.case_id;
+
+  const ACTION_TYPE_MAP = {
+    "dispute": "VENDOR_DISPUTE_NOTICE",
+    "followup": "PAYMENT_FOLLOWUP_DRAFT",
+    "missing_advice": "MISSING_EVIDENCE_REQUEST",
+    "journal_voucher": "DRAFT_JOURNAL_VOUCHER",
+    "VENDOR_DISPUTE_NOTICE": "VENDOR_DISPUTE_NOTICE",
+    "PAYMENT_FOLLOWUP_DRAFT": "PAYMENT_FOLLOWUP_DRAFT",
+    "MISSING_EVIDENCE_REQUEST": "MISSING_EVIDENCE_REQUEST",
+    "DRAFT_JOURNAL_VOUCHER": "DRAFT_JOURNAL_VOUCHER",
+  };
+  const resolvedActionType = ACTION_TYPE_MAP[actionType] || actionType;
+
   try {
     const res = await fetch(`${API_BASE}/api/v1/cases/${encodeURIComponent(cid)}/actions/propose`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action_type: actionType }),
+      body: JSON.stringify({ action_type: resolvedActionType }),
     });
     if (res.ok) {
       showAlert(`Proposed remediation action: ${actionType}`, "success");
       loadRemediationData(cid);
     } else {
-      const err = await res.json();
-      showAlert(`Proposal failed: ${err.detail || "Error"}`, "error");
+      const err = await res.json().catch(() => ({}));
+      showAlert(`Proposal failed: ${err.detail || err.error?.message || "Error"}`, "error");
     }
   } catch (err) {
     showAlert(`Failed to propose action: ${err.message}`, "error");
@@ -4074,23 +4115,7 @@ window.proposeRemediationAction = proposeRemediationAction;
 window.approveRemediationAction = approveRemediationAction;
 window.rejectRemediationAction = rejectRemediationAction;
 
-// Hook up trigger buttons & delegated listener for dynamic renders
-document.addEventListener("DOMContentLoaded", () => {
-  const btnDisp = document.getElementById("btn-propose-dispute");
-  if (btnDisp) btnDisp.addEventListener("click", () => proposeRemediationAction("VENDOR_DISPUTE_NOTICE"));
 
-  const btnFlw = document.getElementById("btn-propose-followup");
-  if (btnFlw) btnFlw.addEventListener("click", () => proposeRemediationAction("PAYMENT_FOLLOWUP_DRAFT"));
-
-  const btnReq = document.getElementById("btn-propose-missing");
-  if (btnReq) btnReq.addEventListener("click", () => proposeRemediationAction("MISSING_EVIDENCE_REQUEST"));
-
-  const btnJv = document.getElementById("btn-propose-journal");
-  if (btnJv) btnJv.addEventListener("click", () => proposeRemediationAction("DRAFT_JOURNAL_VOUCHER"));
-
-  const btnExp = document.getElementById("btn-export-journal");
-  if (btnExp) btnExp.addEventListener("click", exportJournalVoucher);
-});
 
 // =============================================================
 // DAY 20: GOLDEN COMMAND CENTER RENDERER (7-SCENE NARRATIVE)
