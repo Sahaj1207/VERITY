@@ -430,6 +430,8 @@ function openNewInvestigationWorkspace() {
   currentRemediationActions = [];
   currentJournalVoucher = null;
   selectedFiles = [];
+  lastProcessedEvidenceFingerprint = null;
+  isProcessingCurrentInput = false;
 
   // 2. Clear input fields and preview
   const fileInput = document.getElementById("file-input");
@@ -440,6 +442,7 @@ function openNewInvestigationWorkspace() {
   if (textInput) textInput.value = "";
   const jsonInput = document.getElementById("json-case-input");
   if (jsonInput) jsonInput.value = "";
+  updateProcessButtonState();
 
   // 3. Clear active states on demo scenario buttons
   document.querySelectorAll(".demo-btn").forEach((b) => b.classList.remove("active"));
@@ -812,6 +815,7 @@ function initTabs() {
         targetPane.classList.add("active");
         targetPane.style.display = "block";
       }
+      updateProcessButtonState();
     });
   });
 
@@ -896,12 +900,25 @@ function initDropzone() {
     } else {
       filePreview.innerHTML = "";
     }
+    updateProcessButtonState();
   }
 }
 
 function initActionButtons() {
   const btnProcess = document.getElementById("btn-process");
   if (btnProcess) btnProcess.addEventListener("click", processCurrentInput);
+
+  const textInput = document.getElementById("text-evidence-input");
+  if (textInput) {
+    textInput.addEventListener("input", () => updateProcessButtonState());
+    textInput.addEventListener("change", () => updateProcessButtonState());
+  }
+
+  const jsonInput = document.getElementById("json-case-input");
+  if (jsonInput) {
+    jsonInput.addEventListener("input", () => updateProcessButtonState());
+    jsonInput.addEventListener("change", () => updateProcessButtonState());
+  }
 
   const disputeBtn = document.getElementById("btn-propose-dispute");
   if (disputeBtn) disputeBtn.addEventListener("click", () => proposeRemediationAction("dispute"));
@@ -1093,21 +1110,83 @@ async function submitControllerQuery(query) {
 }
 
 // -------------------------------------------------------------
-// PROCESS CUSTOM INPUT
+// PROCESS CUSTOM INPUT & DUPLICATE SUBMISSION STATE GUARD
 // -------------------------------------------------------------
 let isProcessingCurrentInput = false;
+let lastProcessedEvidenceFingerprint = null;
+
+function getCurrentEvidenceFingerprint() {
+  const activeTabEl = document.querySelector(".input-section .tab-btn.active");
+  const activeTab = activeTabEl ? activeTabEl.dataset.tab : "tab-upload";
+  if (activeTab === "tab-upload") {
+    if (!selectedFiles || !selectedFiles.length) return "";
+    return "upload:" + selectedFiles.map((f) => `${f.name}:${f.size}:${f.lastModified}`).sort().join("|");
+  } else if (activeTab === "tab-text") {
+    const textVal = (document.getElementById("text-evidence-input")?.value || "").trim();
+    if (!textVal) return "";
+    return "text:" + textVal;
+  } else if (activeTab === "tab-json") {
+    const jsonVal = (document.getElementById("json-case-input")?.value || "").trim();
+    if (!jsonVal) return "";
+    return "json:" + jsonVal;
+  }
+  return "";
+}
+
+function updateProcessButtonState() {
+  const btn = document.getElementById("btn-process");
+  const btnText = document.getElementById("btn-text");
+  const spinner = document.getElementById("btn-spinner");
+  if (!btn) return;
+
+  if (isProcessingCurrentInput) {
+    if (spinner) spinner.style.display = "inline-block";
+    if (btnText) btnText.textContent = "Analyzing & Reconciling...";
+    btn.disabled = true;
+    return;
+  }
+
+  if (spinner) spinner.style.display = "none";
+
+  const currentFp = getCurrentEvidenceFingerprint();
+  const isAlreadyProcessed = Boolean(
+    lastProcessedEvidenceFingerprint &&
+    currentFp &&
+    currentFp === lastProcessedEvidenceFingerprint
+  );
+
+  if (isAlreadyProcessed) {
+    btn.disabled = true;
+    if (btnText) btnText.textContent = "Reconstructed";
+    btn.title = "This evidence has already been reconstructed. Modify evidence or click New Investigation to reconstruct.";
+  } else {
+    btn.disabled = false;
+    if (btnText) btnText.textContent = "Reconstruct Financial Truth";
+    btn.title = "Reconstruct Financial Truth";
+  }
+}
 
 async function processCurrentInput() {
+  // 1. In-flight mutex: if already processing, immediately return
   if (isProcessingCurrentInput) return;
-  isProcessingCurrentInput = true;
 
-  const activeTabEl = document.querySelector(".input-section .tab-btn.active");
-  const activeTab = activeTabEl ? activeTabEl.dataset.tab : null;
+  // 2. State-level duplicate check: if this exact evidence was already reconstructed, immediately return
+  const currentFp = getCurrentEvidenceFingerprint();
+  if (lastProcessedEvidenceFingerprint && currentFp && currentFp === lastProcessedEvidenceFingerprint) {
+    showAlert("This evidence has already been reconstructed. Enter new evidence or click New Investigation.", "warning");
+    updateProcessButtonState();
+    return;
+  }
+
+  isProcessingCurrentInput = true;
   hideAlert();
   setLoading(true);
 
   try {
     let res;
+    const activeTabEl = document.querySelector(".input-section .tab-btn.active");
+    const activeTab = activeTabEl ? activeTabEl.dataset.tab : null;
+
     if (activeTab === "tab-upload") {
       if (!selectedFiles.length) {
         showAlert("Please select at least one valid evidence file to upload.", "warning");
@@ -1152,31 +1231,34 @@ async function processCurrentInput() {
       throw new Error(msg);
     }
     const data = await res.json();
+
+    // SUCCESS: Mark this exact evidence fingerprint as successfully processed
+    lastProcessedEvidenceFingerprint = currentFp;
+
     renderCaseResult(data);
     loadControllerBrief(data.case_id);
     loadCaseReview(data.case_id);
     loadCounterpartyIntelligence(data.case_id);
     loadPortfolioData();
   } catch (err) {
+    // FAILURE: Do not record fingerprint, allowing user to retry
     showAlert(`Processing Error: ${err.message}`, "error");
   } finally {
-    setLoading(false);
     isProcessingCurrentInput = false;
+    setLoading(false);
   }
 }
 
 function setLoading(isLoading) {
   const spinner = document.getElementById("btn-spinner");
-  const btnText = document.getElementById("btn-text");
   const btn = document.getElementById("btn-process");
   if (isLoading) {
-    spinner.style.display = "inline-block";
-    btnText.textContent = "Analyzing & Reconciling...";
-    btn.disabled = true;
+    if (spinner) spinner.style.display = "inline-block";
+    const btnText = document.getElementById("btn-text");
+    if (btnText) btnText.textContent = "Analyzing & Reconciling...";
+    if (btn) btn.disabled = true;
   } else {
-    spinner.style.display = "none";
-    btnText.textContent = "Reconstruct Financial Truth";
-    btn.disabled = false;
+    updateProcessButtonState();
   }
 }
 
