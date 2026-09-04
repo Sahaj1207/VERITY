@@ -415,7 +415,12 @@ function initAppShell() {
 }
 
 function openNewInvestigationWorkspace() {
-  closeMobileDrawer();
+  const sidebar = document.getElementById("app-sidebar");
+  const backdrop = document.getElementById("sidebar-backdrop");
+
+  if (sidebar) sidebar.classList.remove("open");
+  if (backdrop) backdrop.classList.remove("active");
+  document.body.classList.remove("drawer-open");
 
   // 1. Reset state to clean, unselected investigation
   currentCaseResult = null;
