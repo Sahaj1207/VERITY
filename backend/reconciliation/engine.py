@@ -168,11 +168,32 @@ class ReconciliationEngine:
 
         # 2. Determine Expected Amount (Invoiced or Claimed total)
         expected_amt: Optional[float] = None
-        valid_claim_amts = [c.claimed_amount for c in claims if c.claimed_amount is not None]
-        if valid_claim_amts:
-            expected_amt = round(sum(valid_claim_amts), 2)
-        elif match_relationships:
-            expected_amt = round(match_relationships[0].target_amount, 2)
+        has_amount_discrepancy = any(
+            getattr(d, "discrepancy_type", "") in ("AMOUNT_MISMATCH", "CONFLICTING_CLAIMS")
+            for d in discrepancies
+        )
+        if dedup_group and dedup_group.status in (DeduplicationStatus.SAME_EVENT, DeduplicationStatus.DUPLICATE_EVIDENCE_CONTENT) and not has_amount_discrepancy:
+            if dedup_group.status == DeduplicationStatus.DUPLICATE_EVIDENCE_CONTENT:
+                # Exact duplicate evidence content represents a single duplicated obligation
+                valid_claim_amts = [c.claimed_amount for c in claims if c.claimed_amount is not None]
+                if valid_claim_amts:
+                    expected_amt = round(max(valid_claim_amts), 2)
+            else:
+                # SAME_EVENT: claims describe the same underlying financial event without amount contradiction
+                # Prefer INVOICE_ISSUED claims representing the actual obligation(s)
+                invoice_claims = [c.claimed_amount for c in claims if c.claimed_amount is not None and c.claim_type == ClaimType.INVOICE_ISSUED]
+                if invoice_claims:
+                    expected_amt = round(sum(invoice_claims), 2)
+                else:
+                    valid_claim_amts = [c.claimed_amount for c in claims if c.claimed_amount is not None]
+                    if valid_claim_amts:
+                        expected_amt = round(max(valid_claim_amts), 2)
+        else:
+            valid_claim_amts = [c.claimed_amount for c in claims if c.claimed_amount is not None]
+            if valid_claim_amts:
+                expected_amt = round(sum(valid_claim_amts), 2)
+            elif match_relationships:
+                expected_amt = round(match_relationships[0].target_amount, 2)
 
         # 3. Determine Matched Amount on Ledger
         matched_amt: float = 0.0

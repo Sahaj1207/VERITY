@@ -128,6 +128,25 @@ def test_golden_scenario_demo_04_multimodal(client):
     assert data["status"] == "CONFIRMED"
     assert len(data.get("truth_report", {}).get("evidence_summary", [])) >= 2
 
+    # Verify mathematical consistency for Demo 08 (Expected 50k - Matched 50k = Due 0)
+    fin = data.get("financial_summary", {})
+    assert fin.get("claimed_amount") == 50000.0
+    assert fin.get("matched_amount") == 50000.0
+    assert fin.get("outstanding_amount") == 0.0
+
+    rep_fin = data.get("truth_report", {}).get("financial_summary", {})
+    assert rep_fin.get("claimed_amount") == 50000.0
+    assert rep_fin.get("matched_amount") == 50000.0
+    assert rep_fin.get("outstanding_amount") == 0.0
+    assert "50,000.00" in data.get("truth_report", {}).get("summary", "")
+
+    # Verify Controller Directive
+    r_brief = client.get("/api/v1/cases/DAY10-08-CROSS-MODAL-MULTIMODAL/controller/brief")
+    assert r_brief.status_code == 200
+    brief_data = r_brief.json()
+    assert brief_data["controller_decision"]["decision"] == "CONFIRM_RECONCILIATION"
+    assert brief_data["controller_decision"]["risk_level"] == "NONE"
+
 
 def test_golden_scenario_demo_05_hero_counterparty_memory(client):
     # HERO DEMO-05: Seed Case 1, then Run Case 2 with reused UTR
