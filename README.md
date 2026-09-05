@@ -56,7 +56,7 @@ VERITY/
 │   ├── benchmark/            # 96-case Ground-Truth Benchmark dataset & loader
 │   └── samples/              # Realistic samples (Day 2 CSV, TXT, PDF, PNG)
 ├── docs/                     # Architectural specs, domain models, pipeline lifecycle, and ingestion specs
-├── frontend/                 # Scaffolding and roadmap for Day 2/3 UI
+├── frontend/                 # Interactive Finance Controller dashboard, Command Center, and review workspaces
 ├── scripts/                  # Benchmark generator, integrity validator, and sample generators
 └── tests/                    # Unit, domain, provenance, entity, ingestion, and benchmark test suites
 ```
@@ -496,7 +496,17 @@ VERITY features an institutional counterparty memory layer backed by persistent 
 ## 🎯 Golden Demo & Finance Controller Command Center (Day 20 Milestone)
 
 - **7-Scene Panoramic Narrative**: Complete visual cockpit taking judges from messy heterogeneous evidence through side-by-side AI Extraction vs. Deterministic Truth, Counterparty Memory, Controller Decision Brief, Human Approval, and Cryptographic Provenance.
-- **5 Curated Demo Scenarios**: Instant 1-click execution of Clean 1:1 (`DEMO-01`), Partial Settlement (`DEMO-02`), Amount Contradiction (`DEMO-03`), Messy Multimodal Chat (`DEMO-04`), and Hero Counterparty Reference Reuse (`DEMO-05`).
+- **10 One-Click Golden Demo Scenarios**: Instant 1-click execution across all core financial edge cases:
+  1. **Clean 1:1**
+  2. **Partial Settlement**
+  3. **Amount Contradiction**
+  4. **Entity Contradiction**
+  5. **Ambiguous Duplicates**
+  6. **Unverifiable Chat Promise**
+  7. **Unmatched Credit**
+  8. **Cross-Modal Multimodal**
+  9. **Many-to-One Milestones**
+  10. **One-to-Many Bulk**
 
 ---
 
@@ -513,7 +523,7 @@ VERITY features an institutional counterparty memory layer backed by persistent 
 - Python 3.10+
 - `pip install -r requirements.txt` (including `fastapi`, `uvicorn`, `google-genai`, `pypdf`, `pillow`, `pytest`)
 
-### 2. Run Complete Automated Test Suite (393 Tests)
+### 2. Run Complete Automated Test Suite (402 Tests)
 ```bash
 python -m pytest tests/ -v
 ```
