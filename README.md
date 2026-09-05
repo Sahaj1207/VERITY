@@ -5,6 +5,17 @@
 
 ---
 
+## 🌐 Live Demo
+
+Try VERITY directly:
+**[Live Demo](https://verity-4rky.onrender.com/)**
+
+No installation is required for the deployed demo.
+
+The local setup below is available for development and full verification.
+
+---
+
 ## 📌 The Problem
 
 Financial evidence for Indian SMBs, agencies, and freelancers is fragmented and messy:
@@ -517,6 +528,43 @@ VERITY features an institutional counterparty memory layer backed by persistent 
 
 ---
 
+## 💻 Local Setup
+
+Clone and run VERITY locally:
+
+```bash
+git clone https://github.com/Sahaj1207/VERITY.git
+cd VERITY
+
+python -m venv .venv
+.venv\Scripts\activate
+
+pip install -r requirements.txt
+
+python -m uvicorn backend.api.app:app --reload --port 8000
+```
+
+Open **http://localhost:8000** in a browser.
+
+> **Environment Distinction:**
+> - **LIVE DEMO:** https://verity-4rky.onrender.com/
+> - **LOCAL DEVELOPMENT:** http://localhost:8000
+
+---
+
+## 🖥️ Using the Dashboard
+
+- Open the Command Center.
+- Review the current financial state and system status.
+- Use the Cases workspace to inspect reconstructed financial cases.
+- Open a case to see evidence, matching, contradictions, reconciliation, and the resulting decision.
+- Use Review for cases that require human verification.
+- Use Remediation when an approved corrective action is required.
+- Track 04 / benchmark functionality can be run explicitly when demonstrating the 96-case benchmark.
+- Golden Demo scenarios are available for controlled demonstration of important reconciliation cases.
+
+---
+
 ## 🚀 Quickstart & Verification
 
 ### 1. Requirements
@@ -572,12 +620,6 @@ python scripts/evaluate_controller.py
 ```bash
 python scripts/smoke_test_api.py
 ```
-
-### 12. Launch Fast and Interactive Web Dashboard
-```bash
-python -m uvicorn backend.api.app:app --reload --port 8000
-```
-Visit `http://localhost:8000` to interact with the **🎯 Controller Command Center (Golden Demo)**, visual Financial Truth Reconstructor, Case Portfolio Console, Human Review Workspace, and Storage & Audit Integrity Monitor.
 
 ---
 
